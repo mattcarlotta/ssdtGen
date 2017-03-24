@@ -62,7 +62,10 @@ gSSDTPath='_SB.PCI0'
 ##==============================================================================##
 function _clean_up()
 {
-  printf "User aborted! Cleaning up script...\033[0K\r\n"
+  printf "Cleaning up any left-overs..."
+  rm "${gPath}"/*.dsl
+  sleep 1
+  printf "Script was aborted!\033[0K\r\n"
   exit 1
   clear
 }
@@ -110,56 +113,164 @@ function _getDSM()
 }
 
 #===============================================================================##
+## CHECK DEVICE PROP IS NOT EMPTY #
+##==============================================================================##
+function _testVariable()
+{
+  SSDTPROP=$1
+  SSDTDEVICE=$2
+  SSDTKEY=$3
+
+  if [ -z "$SSDTPROP" ]
+    then
+      echo ''
+      echo "*—-ERROR—-* There was a problem locating $SSDTDEVICE's $SSDTKEY! Please send a report of this error!"
+      echo ''
+      _clean_up
+  fi
+}
+
+#===============================================================================##
+## SET DEVICE STATUS #
+##==============================================================================##
+function _setDeviceStat()
+{
+  echo ''                                                                                 >> "$gSSDT"
+  echo '    Name ('${gSSDTPath}'.'$SSDT'._STA, Zero)  // _STA: Status'                    >> "$gSSDT"
+  echo '}'                                                                                >> "$gSSDT"
+}
+
+#===============================================================================##
+## GRAB LAYOUT ID #
+##==============================================================================##
+function _getLayoutID()
+{
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "layout-id",'                                                     >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x01, 0x00, 0x00, 0x00'                                       >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+}
+
+#===============================================================================##
+## GRAB HDA-GFX #
+##==============================================================================##
+function _getHdaGfx()
+{
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "hda-gfx",'                                                       >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    "onboard-1"'                                                  >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+}
+
+#===============================================================================##
+## GRAB DEVICE ID #
+##==============================================================================##
+function _getDevID()
+{
+  SSDTDEVID=$(ioreg -p IODeviceTree -n "$device" -k device-id | grep device-id |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/deviceid//g')
+  _testVariable $SSDTDEVID
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "device-id",'                                                     >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                  "'$SSDTDEVID'"'                                                 >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+}
+
+#===============================================================================##
+## GRAB COMPATIBLE PCI ID #
+##==============================================================================##
+function _getCompatibleID()
+{
+  let prop='compatible'
+  SSDTCOMPAT=$(ioreg -p IODeviceTree -n "$device" -k $prop | grep $prop |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/compatible//g')
+  _testVariable $SSDTCOMPAT
+
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "compatible",'                                                    >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                  "'$SSDTCOMPAT'"'                                                >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+}
+
+#===============================================================================##
+## GRAB COMPATIBLE PCI ID #
+##==============================================================================##
+function _getModelProp()
+{
+  SSDTMODEL=$1
+
+  echo '                "model",'                                                     >> "$gSSDT"
+  echo '                Buffer()'                                                     >> "$gSSDT"
+  echo '                {'                                                            >> "$gSSDT"
+  echo '                    '$SSDTMODEL''                               >> "$gSSDT"
+  echo '                },'                                                           >> "$gSSDT"
+}
+
+#===============================================================================##
+## GRAB DEVICE ADDRESS #
+##==============================================================================##
+function _getDeviceAddr()
+{
+  device=$1
+  path='acpi-path'
+  SSDTADR=$(ioreg -p IODeviceTree -n "$device" -k $path | grep $path |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+  _testVariable "${SSDTADR}" "$device" "$path"
+
+  echo '    Device ('${gSSDTPath}'.'${device}')'                                          >> "$gSSDT"
+  echo '    {'                                                                            >> "$gSSDT"
+  echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
+  _getDSM
+}
+
+#===============================================================================##
 ## CHECKS WHAT KIND OF METHOD: DSM OR DEVICE #
 ##==============================================================================##
-function _check_SSDTMethod()
+function _buildSSDT()
 {
   SSDT=$1
-  # ****need to switch HDEF to ALZA ****
-  SSDTADR=$(ioreg -p IODeviceTree -n "HDEF" -k acpi-path | grep acpi-path |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
-  SSDTCOMPAT=$(ioreg -p IODeviceTree -n "HDEF" -k compatible | grep compatible |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/compatible//g')
 
-  # if [[ $SSDT -eq 'ALZA' ]];
+  if [[ $SSDT -eq 'ALZA' ]];
+    then
+      # ****need to switch HDEF to ALZA ****
+      _getDeviceAddr HDEF
+      # _getModelProp '"Realtek Audio Controller"'
+      # _getHdaGfx
+      # _getLayoutID
+      # _getCompatibleID $device
+      # echo ''                                                                             >> "$gSSDT"
+      # echo '                "PinConfigurations",'                                         >> "$gSSDT"
+      # echo '                Buffer()'                                                     >> "$gSSDT"
+      # echo '                {'                                                            >> "$gSSDT"
+      # echo '                    0x00'                                                     >> "$gSSDT"
+      # echo '                }'                                                            >> "$gSSDT"
+      # echo '            })'                                                               >> "$gSSDT"
+      # echo '        }'                                                                    >> "$gSSDT"
+      # echo '    }'                                                                        >> "$gSSDT"
+      # _setDeviceStat
+  fi
+  # if [[ $SSDT -eq 'EVMR' ]];
   #   then
-      echo '    Device ('${gSSDTPath}'.HDEF)'                                             >> "$gSSDT"
-      echo '    {'                                                                        >> "$gSSDT"
-      echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                        >> "$gSSDT"
-      _getDSM
-      echo '                "model",'                                                     >> "$gSSDT"
-      echo '                Buffer()'                                                     >> "$gSSDT"
-      echo '                {'                                                            >> "$gSSDT"
-      echo '                    "Realtek Audio Controller"'                               >> "$gSSDT"
-      echo '                },'                                                           >> "$gSSDT"
-      echo ''                                                                             >> "$gSSDT"
-      echo '                "hda-gfx",'                                                   >> "$gSSDT"
-      echo '                Buffer()'                                                     >> "$gSSDT"
-      echo '                {'                                                            >> "$gSSDT"
-      echo '                    "onboard-1"'                                              >> "$gSSDT"
-      echo '                },'                                                           >> "$gSSDT"
-      echo ''                                                                             >> "$gSSDT"
-      echo '                "layout-id",'                                                 >> "$gSSDT"
-      echo '                Buffer()'                                                     >> "$gSSDT"
-      echo '                {'                                                            >> "$gSSDT"
-      echo '                    0x01, 0x00, 0x00, 0x00'                                   >> "$gSSDT"
-      echo '                },'                                                           >> "$gSSDT"
-      echo ''                                                                             >> "$gSSDT"
-      echo '                "compatible",'                                                >> "$gSSDT"
-      echo '                Buffer()'                                                     >> "$gSSDT"
-      echo '                {'                                                            >> "$gSSDT"
-      echo '                  "'$SSDTCOMPAT'"'                                            >> "$gSSDT"
-      echo '                },'                                                           >> "$gSSDT"
-      echo ''                                                                             >> "$gSSDT"
-      echo '                "PinConfiguration",'                                          >> "$gSSDT"
-      echo '                Buffer()'                                                     >> "$gSSDT"
-      echo '                {'                                                            >> "$gSSDT"
-      echo '                    0x00'                                                     >> "$gSSDT"
-      echo '                }'                                                            >> "$gSSDT"
-      echo '            })'                                                               >> "$gSSDT"
-      echo '        }'                                                                    >> "$gSSDT"
-      echo '    }'                                                                        >> "$gSSDT"
-      echo ''                                                                             >> "$gSSDT"
-      echo '    Name (_SB.PCI0.ALZA._STA, Zero)  // _STA: Status'                         >> "$gSSDT"
-      echo '}'                                                                            >> "$gSSDT"
+  #     # ****need to switch SPSR to EVMR ****
+  #     _getDeviceProp SPSR
+  #     _getHdaGfx
+  #     _getLayoutID
+  #     _getCompatibleID $device
+  #     echo ''                                                                             >> "$gSSDT"
+  #     echo '                "PinConfigurations",'                                         >> "$gSSDT"
+  #     echo '                Buffer()'                                                     >> "$gSSDT"
+  #     echo '                {'                                                            >> "$gSSDT"
+  #     echo '                    0x00'                                                     >> "$gSSDT"
+  #     echo '                }'                                                            >> "$gSSDT"
+  #     echo '            })'                                                               >> "$gSSDT"
+  #     echo '        }'                                                                    >> "$gSSDT"
+  #     echo '    }'                                                                        >> "$gSSDT"
+  #     _setDeviceStat
   # fi
 }
 
@@ -168,31 +279,30 @@ function _check_SSDTMethod()
 ##==============================================================================##
 function _printHeader()
 {
-    gSSDTID="SSDT-${gTableID[$gCount]}"
-    printf 'Creating: '${gSSDTID}'.dsl \n'
-    gSSDT="${gPath}/${gSSDTID}.dsl"
+  gSSDTID="SSDT-${gTableID[$gCount]}"
+  printf 'Creating: '${gSSDTID}'.dsl \n'
+  gSSDT="${gPath}/${gSSDTID}.dsl"
 
-    echo '/*'                                                                             >  "$gSSDT"
-    echo ' * Intel ACPI Component Architecture'                                           >> "$gSSDT"
-    echo ' * AML/ASL+ Disassembler version 20161222-64(RM)'                               >> "$gSSDT"
-    echo ' * Copyright (c) 2000 - 2017 Intel Corporation'                                 >> "$gSSDT"
-    echo ' * '                                                                            >> "$gSSDT"
-    echo ' * Original Table Header:'                                                      >> "$gSSDT"
-    echo ' *     Signature        "SSDT"'                                                 >> "$gSSDT"
-    echo ' *     Length           '${gTableLength[$gCount]}''                             >> "$gSSDT"
-    echo ' *     Revision         0x01'                                                   >> "$gSSDT"
-    echo ' *     Checksum         '${gTableChecksum[$gCount]}''                           >> "$gSSDT"
-    echo ' *     OEM ID           "mfc88"'                                                >> "$gSSDT"
-    echo ' *     OEM Table ID     "'${gTableID[$gCount]}'"'                               >> "$gSSDT"
-    echo ' *     OEM Revision     0x00000000 (0)'                                         >> "$gSSDT"
-    echo ' *     Compiler ID      "INTL"'                                                 >> "$gSSDT"
-    echo ' *     Compiler Version 0x20160422 (538313762)'                                 >> "$gSSDT"
-    echo ' */'                                                                            >> "$gSSDT"
-    echo ''                                                                               >> "$gSSDT"
-    echo 'DefinitionBlock ("", "SSDT", 1, "mfc88", "'${gTableID[$gCount]}'", 0x00000000)' >> "$gSSDT"
-    echo '{'                                                                              >> "$gSSDT"
-
-    _check_SSDTMethod ${gTableID[$gCount]}
+  echo '/*'                                                                               >  "$gSSDT"
+  echo ' * Intel ACPI Component Architecture'                                             >> "$gSSDT"
+  echo ' * AML/ASL+ Disassembler version 20161222-64(RM)'                                 >> "$gSSDT"
+  echo ' * Copyright (c) 2000 - 2017 Intel Corporation'                                   >> "$gSSDT"
+  echo ' * '                                                                              >> "$gSSDT"
+  echo ' * Original Table Header:'                                                        >> "$gSSDT"
+  echo ' *     Signature        "SSDT"'                                                   >> "$gSSDT"
+  echo ' *     Length           '${gTableLength[$gCount]}''                               >> "$gSSDT"
+  echo ' *     Revision         0x01'                                                     >> "$gSSDT"
+  echo ' *     Checksum         '${gTableChecksum[$gCount]}''                             >> "$gSSDT"
+  echo ' *     OEM ID           "mfc88"'                                                  >> "$gSSDT"
+  echo ' *     OEM Table ID     "'${gTableID[$gCount]}'"'                                 >> "$gSSDT"
+  echo ' *     OEM Revision     0x00000000 (0)'                                           >> "$gSSDT"
+  echo ' *     Compiler ID      "INTL"'                                                   >> "$gSSDT"
+  echo ' *     Compiler Version 0x20160422 (538313762)'                                   >> "$gSSDT"
+  echo ' */'                                                                              >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo 'DefinitionBlock ("", "SSDT", 1, "mfc88", "'${gTableID[$gCount]}'", 0x00000000)'   >> "$gSSDT"
+  echo '{'                                                                                >> "$gSSDT"
+  _buildSSDT ${gTableID[$gCount]}
 
 }
 
@@ -208,12 +318,12 @@ function _compileSSDT
   printf "${STYLE_BOLD}Removing:${STYLE_RESET} ${gSSDTID}.dsl\n"
   printf  "\n%s" '--------------------------------------------------------------------------------'
   printf '\n'
-  rm "$gSSDT"
-  if [[ $gCount -lt 11 ]];
-    then
-      _printHeader
-      _compileSSDT
-  fi
+  #rm "$gSSDT"
+  #if [[ $gCount -lt 11 ]];
+  #  then
+  #    _printHeader
+  #    _compileSSDT
+  #fi
 }
 
 #===============================================================================##
