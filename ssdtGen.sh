@@ -3,16 +3,58 @@ gSSDT=""
 gSSDTID=""
 gUSER=$(stat -f%Su /dev/console)
 gIasl="$HOME/Documents/iasl.git"
+gCount=0
+gTableID=(
+[0]='ALZA'
+[1]='EVMR'
+[2]='EVSS'
+[3]='GFX1'
+[4]='GLAN'
+[5]='HECI'
+[6]='LCP0'
+[7]='SAT1'
+[8]='SMBS'
+[9]='XHC'
+[10]='XOSI'
+)
+gTableLength=(
+[0]="0x000000ED (237)"
+[1]="0x00000108 (264)"
+[2]="0x0000013A (314)"
+[3]="0x0000037C (892)"
+[4]="0x000000E6 (230)"
+[5]="0x000000FE (254)"
+[6]="0x00000078 (120)"
+[7]="0x00000138 (312)"
+[8]="0x000000B6 (182)"
+[9]="0x0000016F (367)"
+[10]="0x000000B0 (176)"
+)
+gTableChecksum=(
+[0]='0xBC'
+[1]='0x5F'
+[2]='0x02'
+[3]='0x89'
+[4]='0x53'
+[5]='0x78'
+[6]='0x11'
+[7]='0x9E'
+[8]='0x7F'
+[9]='0xF4'
+[10]='0xA2'
+)
 
-# ALZA, Length  0x000000ED (237), Checksum 0xBC, Device
-# EVMR, Length  0x00000108 (264), Checksum 0x5F, Device
-# EVSS, Length  0x0000013A (314), Checksum 0x02, _DSM
-# GFX1, Length  0x0000037C (892), Checksum 0x89, Device
-# GLAN, Length  0x000000E6 (230), Checksum 0x53, _DSM
-# HECI, Length  0x000000FE (254), Checksum 0x78, Device
-# LCP0, Length  0x00000078 (120), Checksum 0x11, _DSM
-# SAT1, Length  0x00000138 (312), Checksum 0x9E, _DSM
-# SMBS, Length  0x000000B6 (182), Checksum 0x7F, Device
+# 0 ALZA, Length  0x000000ED (237), Checksum 0xBC, Device
+# 1 EVMR, Length  0x00000108 (264), Checksum 0x5F, Device
+# 2 EVSS, Length  0x0000013A (314), Checksum 0x02, _DSM
+# 3 GFX1, Length  0x0000037C (892), Checksum 0x89, Device
+# 4 GLAN, Length  0x000000E6 (230), Checksum 0x53, _DSM
+# 5 HECI, Length  0x000000FE (254), Checksum 0x78, Device
+# 6 LCP0, Length  0x00000078 (120), Checksum 0x11, _DSM
+# 7 SAT1, Length  0x00000138 (312), Checksum 0x9E, _DSM
+# 8 SMBS, Length  0x000000B6 (182), Checksum 0x7F, Device
+# 9 XHC,  Length  0x0000016F (367), Checksum 0xF4, _DSM
+# 10 XOIS,Length  0x000000B0 (176), Checksum 0xA2, Special
 
 #===============================================================================##
 ## USER ABORTS SCRIPT #
@@ -73,7 +115,7 @@ function _check_SSDTMethod()
 {
   SSDT=$1
   # ****need to switch HDEF to ALZA ****
-SSDTADR=$(ioreg -p IODeviceTree -n "HDEF" -k acpi-path | grep acpi-path |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g')
+SSDTADR=$(ioreg -p IODeviceTree -n "HDEF" -k acpi-path | grep acpi-path |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
 SSDTCOMPAT=$(ioreg -p IODeviceTree -n "HDEF@1B" -k compatible | grep compatible |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/compatible//g')
 
   if [[ $SSDT -eq 'ALZA' ]];
@@ -125,8 +167,8 @@ SSDTCOMPAT=$(ioreg -p IODeviceTree -n "HDEF@1B" -k compatible | grep compatible 
 ##==============================================================================##
 function _printHeader()
 {
-    _getTables
-    gSSDTID="SSDT-$tableID"
+    gSSDTID="SSDT-${gTableID[$gCount]}"
+    echo $gSSDTID
     gSSDT="${gPath}/${gSSDTID}.dsl"
 
     echo '/*'                                                                             >  "$gSSDT"
@@ -136,31 +178,30 @@ function _printHeader()
     echo ' * '                                                                            >> "$gSSDT"
     echo ' * Original Table Header:'                                                      >> "$gSSDT"
     echo ' *     Signature        "SSDT"'                                                 >> "$gSSDT"
-    echo ' *     Length           '${tableLength}''                                       >> "$gSSDT"
+    echo ' *     Length           '${gTableLength[$gCount]}''                             >> "$gSSDT"
     echo ' *     Revision         0x01'                                                   >> "$gSSDT"
-    echo ' *     Checksum         '$tableChecksum''                                       >> "$gSSDT"
+    echo ' *     Checksum         '${gTableChecksum[$gCount]}''                           >> "$gSSDT"
     echo ' *     OEM ID           "mfc88"'                                                >> "$gSSDT"
-    echo ' *     OEM Table ID     "'$tableID'"'                                           >> "$gSSDT"
+    echo ' *     OEM Table ID     "'${gTableID[$gCount]}'"'                               >> "$gSSDT"
     echo ' *     OEM Revision     0x00000000 (0)'                                         >> "$gSSDT"
     echo ' *     Compiler ID      "INTL"'                                                 >> "$gSSDT"
     echo ' *     Compiler Version 0x20160422 (538313762)'                                 >> "$gSSDT"
     echo ' */'                                                                            >> "$gSSDT"
     echo ''                                                                               >> "$gSSDT"
-    echo 'DefinitionBlock ("", "SSDT", 1, "mfc88", "'$tableID'", 0x00000000)'             >> "$gSSDT"
+    echo 'DefinitionBlock ("", "SSDT", 1, "mfc88", "'${gTableID[$gCount]}'", 0x00000000)' >> "$gSSDT"
     echo '{'                                                                              >> "$gSSDT"
 
-    _check_SSDTMethod $tableID
+    _check_SSDTMethod ${gTableID[$gCount]}
 }
 
-#===============================================================================##
-## GET SSDT TABLES #
-##==============================================================================##
-function _getTables
-{
-  tableID='ALZA'
-  tableLength="0x000000ED (237)"
-  tableChecksum='0xBC'
-}
+# #===============================================================================##
+# ## GET SSDT TABLES #
+# ##==============================================================================##
+# function _getTables
+# {
+#
+#
+# }
 
 #===============================================================================##
 ## GREET USER #
@@ -182,7 +223,7 @@ function main()
   greet
   _getSIPStat
   _printHeader
-  chown $gUSER $gSSDT
+  #chown $gUSER $gSSDT
   #printf "\n${STYLE_BOLD}Compiling:${STYLE_RESET} ${gSSDT}"
   #iasl -G "$gSSDT"
 }
