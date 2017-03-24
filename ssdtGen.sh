@@ -37,10 +37,10 @@ gTableID=(
 [3]='GFX1'
 [4]='GLAN'
 [5]='HECI'
-[6]='LCP0'
+[6]='LPC0'
 [7]='SAT1'
 [8]='SMBS'
-[9]='XHC'
+[9]='XHC_'
 [10]='XOSI'
 )
 
@@ -140,11 +140,30 @@ function _testVariable()
   fi
 }
 
+#===============================================================================##
+## EOF BRACKETS #
+##==============================================================================##
 function _close_Brackets()
 {
+  MB=$1
+
   echo '            })'                                                                   >> "$gSSDT"
   echo '        }'                                                                        >> "$gSSDT"
   echo '    }'                                                                            >> "$gSSDT"
+
+  if [ "$MB" = true ];
+    then
+    echo '   }'                                                                           >> "$gSSDT"
+    echo '  }'                                                                            >> "$gSSDT"
+  fi
+}
+
+#===============================================================================##
+## EOF BRACKETS #
+##==============================================================================##
+function _getPowerOptions()
+{
+
 }
 
 #===============================================================================##
@@ -345,14 +364,13 @@ function _getDevice_Model()
 function _getDSM()
 {
   local DSM=$1
-  echo $DSM
 
   if [ "$DSM" = true ];
     then
       echo '            If (LNot (Arg2))'                                                 >> "$gSSDT"
     else
-      echo '        Method (_DSM, 4, NotSerialized)'                                          >> "$gSSDT"
-      echo '        {'                                                                        >> "$gSSDT"
+      echo '        Method (_DSM, 4, NotSerialized)'                                      >> "$gSSDT"
+      echo '        {'                                                                    >> "$gSSDT"
       echo '            If (LEqual (Arg2, Zero))'                                         >> "$gSSDT"
   fi
 
@@ -365,6 +383,27 @@ function _getDSM()
   echo ''                                                                                 >> "$gSSDT"
   echo '            Return (Package ()'                                                   >> "$gSSDT"
   echo '            {'                                                                    >> "$gSSDT"
+}
+
+function _getExtDevice_Address_SMBS()
+{
+  device='SBUS'
+  key='acpi-path'
+  SSDTADR=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+  _testVariable "${SSDTADR}" "$device" "$key"
+
+  echo '    Device ('${gSSDTPath}'.'${device}')'                                          >> "$gSSDT"
+  echo '    {'                                                                            >> "$gSSDT"
+  echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
+  echo '        Device (BUS0)'                                                            >> "$gSSDT"
+  echo '        {'                                                                        >> "$gSSDT"
+  echo '            Name (_CID, "smbus") // _CID: Compatible ID'                          >> "$gSSDT"
+  echo '            Name (_ADR, Zero)'                                                        >> "$gSSDT"
+  echo '            Device (DVL0)'                                                        >> "$gSSDT"
+  echo '            {'                                                                    >> "$gSSDT"
+  echo '                   Name (_ADR, 0x57)'                                             >> "$gSSDT"
+  echo '                   Name (_CID, "diagsvault")'                                     >> "$gSSDT"
+  _getDSM
 }
 
 #===============================================================================##
@@ -455,6 +494,61 @@ function _buildSSDT()
       _getDevice_SubSys_ID
       _getDevice_SubSysVendor_ID
       _close_Brackets
+  fi
+
+  if [[ "$SSDT" == "HECI" ]];
+    then
+        # ****need to switch IMEI to HECI ****
+      _getDevice_Address IMEI
+      _getDevice_SlotName
+      _getDevice_Model '"IMEI Controller"'
+      _getDevice_BuiltIn
+      _getDevice_ID
+      _getDevice_CompatibleID $device
+      _close_Brackets
+      _setDevice_Status
+  fi
+
+  if [[ "$SSDT" == "LPC0" ]];
+    then
+        # ****need to switch IMEI to HECI ****
+      _getExtDevice_Address LPC0
+      _getDevice_CompatibleID $device
+      _close_Brackets
+  fi
+
+  if [[ "$SSDT" == "SAT1" ]];
+    then
+        # ****need to switch IMEI to HECI ****
+      _getExtDevice_Address SAT1
+      _getDevice_SlotName
+      _getDevice_BuiltIn
+      _getDevice_Name '"Intel AHCI Controller"'
+      _getDevice_Model '"Intel 99 Series Chipset Family SATA Controller"'
+      _getDevice_CompatibleID $device
+      _getDevice_Type '"AHCI Controller"'
+      _getDevice_ID
+      _close_Brackets
+  fi
+
+  if [[ "$SSDT" == "SMBS" ]];
+    then
+        # ****need to switch SBUS to SMBS ****
+      _getExtDevice_Address_SMBS
+      _getDevice_ID
+      _close_Brackets true
+      _setDevice_Status
+  fi
+
+  if [[ "$SSDT" == "XHC_" ]];
+    then
+      _getExtDevice_Address XHC_
+      _getDevice_ID
+      _getDevice_Name '"Intel XHC Controller"'
+      _getDevice_Model '"Intel 99 Series Chipset Family USB xHC Host Controller"'
+      _getPowerOptions
+
+      _setDevice_Status
   fi
 }
 
