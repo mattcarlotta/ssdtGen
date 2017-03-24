@@ -153,28 +153,52 @@ function _testVariable()
   fi
 }
 
+function _close_Brackets()
+{
+  echo '            })'                                                                   >> "$gSSDT"
+  echo '        }'                                                                        >> "$gSSDT"
+  echo '    }'                                                                            >> "$gSSDT"
+}
+
 #===============================================================================##
 ## SET DEVICE STATUS #
 ##==============================================================================##
-function _setDeviceStat()
+function _setDevice_Status()
 {
   echo ''                                                                                 >> "$gSSDT"
   echo '    Name ('${gSSDTPath}'.'$SSDT'._STA, Zero)  // _STA: Status'                    >> "$gSSDT"
   echo '}'                                                                                >> "$gSSDT"
 }
 
+
 #===============================================================================##
-## GRAB NAME #
+## GRAB PIN CONFIG #
 ##==============================================================================##
-function _getDeviceType()
+function _getDevice_PinConfig()
 {
   SSDT_NAME=$1
 
   echo ''                                                                                 >> "$gSSDT"
-  echo '                "device_type",'                                                >> "$gSSDT"
+  echo '                "PinConfigurations",'                                             >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
-  echo '                    '${SSDT_NAME}''                                                   >> "$gSSDT"
+  echo '                    0x00'                                                         >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+}
+
+
+#===============================================================================##
+## GRAB DEVICE NAME #
+##==============================================================================##
+function _getDevice_Name()
+{
+  SSDT_NAME=$1
+
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "name",'                                                          >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    '${SSDT_NAME}''                                               >> "$gSSDT"
   echo '                },'                                                               >> "$gSSDT"
 }
 
@@ -182,22 +206,22 @@ function _getDeviceType()
 #===============================================================================##
 ## GRAB DEVICE-TYPE #
 ##==============================================================================##
-function _getDeviceType()
+function _getDevice_Type()
 {
   SSDT_DEV_TYPE=$1
 
   echo ''                                                                                 >> "$gSSDT"
-  echo '                "device_type",'                                                >> "$gSSDT"
+  echo '                "device_type",'                                                   >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
-  echo '                    '${SSDT_DEV_TYPE}''                                                   >> "$gSSDT"
+  echo '                    '${SSDT_DEV_TYPE}''                                           >> "$gSSDT"
   echo '                },'                                                               >> "$gSSDT"
 }
 
 #===============================================================================##
 ## GRAB APPLE SLOT NAME #
 ##==============================================================================##
-function _getSlotname()
+function _getDevice_SlotName()
 {
   echo ''                                                                                 >> "$gSSDT"
   echo '                "AAPL,slot-name",'                                                >> "$gSSDT"
@@ -210,7 +234,7 @@ function _getSlotname()
 #===============================================================================##
 ## GRAB LAYOUT ID #
 ##==============================================================================##
-function _getLayoutID()
+function _getDevice_LayoutID()
 {
   echo ''                                                                                 >> "$gSSDT"
   echo '                "layout-id",'                                                     >> "$gSSDT"
@@ -223,7 +247,7 @@ function _getLayoutID()
 #===============================================================================##
 ## GRAB HDA-GFX #
 ##==============================================================================##
-function _getHdaGfx()
+function _getDevice_HdaGfx()
 {
   echo ''                                                                                 >> "$gSSDT"
   echo '                "hda-gfx",'                                                       >> "$gSSDT"
@@ -236,10 +260,11 @@ function _getHdaGfx()
 #===============================================================================##
 ## GRAB DEVICE ID #
 ##==============================================================================##
-function _getDeviceID()
+function _getDevice_ID()
 {
   SSDT_DEVID=$(ioreg -p IODeviceTree -n "$device" -k device-id | grep device-id |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/deviceid//g')
   _testVariable "${SSDT_DEVID}" "$device" "$key"
+
   echo ''                                                                                 >> "$gSSDT"
   echo '                "device-id",'                                                     >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
@@ -251,7 +276,7 @@ function _getDeviceID()
 #===============================================================================##
 ## GRAB COMPATIBLE PCI ID #
 ##==============================================================================##
-function _getCompatibleID()
+function _getDevice_CompatibleID()
 {
   key='compatible'
   SSDT_COMPAT=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/compatible//g')
@@ -268,10 +293,11 @@ function _getCompatibleID()
 #===============================================================================##
 ## GRAB COMPATIBLE PCI ID #
 ##==============================================================================##
-function _getModel()
+function _getDevice_Model()
 {
   SSDTMODEL=$1
 
+  echo ''                                                                                 >> "$gSSDT"
   echo '                "model",'                                                         >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
@@ -282,7 +308,7 @@ function _getModel()
 #===============================================================================##
 ## GRAB DEVICE ADDRESS #
 ##==============================================================================##
-function _getDeviceAddr()
+function _getDevice_Address()
 {
   device=$1
   key='acpi-path'
@@ -302,35 +328,30 @@ function _buildSSDT()
 {
   SSDT=$1
 
-  # if [[ $SSDT -eq 'ALZA' ]];
-  #   then
-  #     # ****need to switch HDEF to ALZA ****
-  #     _getDeviceAddr HDEF
-  #     _getModel '"Realtek Audio Controller"'
-  #     _getHdaGfx
-  #     _getLayoutID
-  #     _getCompatibleID $device
-  #     echo ''                                                                             >> "$gSSDT"
-  #     echo '                "PinConfigurations",'                                         >> "$gSSDT"
-  #     echo '                Buffer()'                                                     >> "$gSSDT"
-  #     echo '                {'                                                            >> "$gSSDT"
-  #     echo '                    0x00'                                                     >> "$gSSDT"
-  #     echo '                }'                                                            >> "$gSSDT"
-  #     echo '            })'                                                               >> "$gSSDT"
-  #     echo '        }'                                                                    >> "$gSSDT"
-  #     echo '    }'                                                                        >> "$gSSDT"
-  #     _setDeviceStat
-  # fi
+  if [[ $SSDT -eq 'ALZA' ]];
+    then
+      # ****need to switch HDEF to ALZA ****
+      _getDevice_Address HDEF
+      _getDevice_Model '"Realtek Audio Controller"'
+      _getDevice_HdaGfx
+      _getDevice_LayoutID
+      _getDevice_CompatibleID $device
+      _getDevice_PinConfig
+      _close_Brackets
+      _setDevice_Status
+  fi
   echo $SSDT
   if [[ "$SSDT" == "EVMR" ]];
     then
       # ****need to switch SPSR to EVMR ****
-      _getDeviceAddr SPSR
-      _getSlotname
-      _getDeviceID
-      _getDeviceType '"Intel SPSR Controller"'
-
-      # _setDeviceStat
+      _getDevice_Address SPSR
+      _getDevice_SlotName
+      _getDevice_ID
+      _getDevice_Type '"Intel SPSR Controller"'
+      _getDevice_Name '"C610/X99 Series Chipset SPSR"'
+      _getDevice_Model '"Intel SPSR Chipset"'
+      _close_Brackets
+      _setDevice_Status
   fi
 }
 
