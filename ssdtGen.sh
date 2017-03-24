@@ -13,10 +13,12 @@ gIasl="$HOME/Documents/iasl.git"
 # LCP0, Length  0x00000078 (120), Checksum 0x11, _DSM
 # SAT1, Length  0x00000138 (312), Checksum 0x9E, _DSM
 # SMBS, Length  0x000000B6 (182), Checksum 0x7F, Device
+
 #===============================================================================##
 ## USER ABORTS SCRIPT #
 ##==============================================================================##
-function _clean_up() {
+function _clean_up()
+{
   printf "User aborted! Cleaning up script...\033[0K\r\n"
   exit 1
   clear
@@ -43,6 +45,79 @@ function _getSIPStat()
     * )
       ;;
   esac
+}
+
+#===============================================================================##
+## GRAB GENERIC _DSM #
+##==============================================================================##
+function _getDSM()
+{
+  echo '        Method (_DSM, 4, NotSerialized)'                                                  >> "$gSSDT"
+  echo '        {'                                                                                >> "$gSSDT"
+  echo '            If (LEqual (Arg2, Zero))'                                                       >> "$gSSDT"
+  echo '            {'                                                                              >> "$gSSDT"
+  echo '                Return (Buffer (One)'                                                         >> "$gSSDT"
+  echo '                {'                                                                            >> "$gSSDT"
+  echo '                    0x03'                                                                       >> "$gSSDT"
+  echo '                })'                                                                           >> "$gSSDT"
+  echo '            }'                                                                              >> "$gSSDT"
+  echo ''                                                                                     >> "$gSSDT"
+  echo '            Return (Package ()'                                                             >> "$gSSDT"
+  echo '            {'                                                                              >> "$gSSDT"
+}
+
+#===============================================================================##
+## CHECKS WHAT KIND OF METHOD: DSM OR DEVICE #
+##==============================================================================##
+function _check_SSDTMethod()
+{
+  SSDT=$1
+  # ****need to switch HDEF to ALZA ****
+SSDTADR=$(ioreg -p IODeviceTree -n "HDEF" -k acpi-path | grep acpi-path |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g')
+SSDTCOMPAT=$(ioreg -p IODeviceTree -n "HDEF@1B" -k compatible | grep compatible |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/compatible//g')
+
+  if [[ $SSDT -eq 'ALZA' ]];
+    then
+      echo '    Device (_SB.PCI0.HDEF)'                                                         >> "$gSSDT"
+      echo '    {'                                                                              >> "$gSSDT"
+      echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                              >> "$gSSDT"
+      _getDSM
+      echo '                "model",'                                                                   >> "$gSSDT"
+      echo '                Buffer()'                                                                   >> "$gSSDT"
+      echo '                {'                                                                          >> "$gSSDT"
+      echo '                    "Realtek Audio Controller"'                                               >> "$gSSDT"
+      echo '                },'                                                                         >> "$gSSDT"
+      echo ''                                                                                 >> "$gSSDT"
+      echo '                "hda-gfx",'                                                                 >> "$gSSDT"
+      echo '                Buffer()'                                                                   >> "$gSSDT"
+      echo '                {'                                                                          >> "$gSSDT"
+      echo '                    "onboard-1"'                                                              >> "$gSSDT"
+      echo '                },'                                                                         >> "$gSSDT"
+      echo ''                                                                                 >> "$gSSDT"
+      echo '                "layout-id",'                                                               >> "$gSSDT"
+      echo '                Buffer()'                                                                   >> "$gSSDT"
+      echo '                {'                                                                          >> "$gSSDT"
+      echo '                    0x01, 0x00, 0x00, 0x00'                                                   >> "$gSSDT"
+      echo '                },'                                                                         >> "$gSSDT"
+      echo ''                                                                                 >> "$gSSDT"
+      echo '                "compatible",'                                                              >> "$gSSDT"
+      echo '                Buffer()'                                                                   >> "$gSSDT"
+      echo '                {'                                                                          >> "$gSSDT"
+      echo '                  "'$SSDTCOMPAT'"'                                                          >> "$gSSDT"
+      echo '                },'                                                                         >> "$gSSDT"
+      echo ''                                                                                 >> "$gSSDT"
+      echo '                "PinConfiguration",'                                                        >> "$gSSDT"
+      echo '                Buffer()'                                                                   >> "$gSSDT"
+      echo '                {'                                                                          >> "$gSSDT"
+      echo '                    0x00'                                                                     >> "$gSSDT"
+      echo '                }'                                                                          >> "$gSSDT"
+      echo '            })'                                                                           >> "$gSSDT"
+      echo '        }'                                                                              >> "$gSSDT"
+      echo '    }'                                                                               >> "$gSSDT"
+      echo ''                                                                                 >> "$gSSDT"
+      echo '    Name (_SB.PCI0.ALZA._STA, Zero)  // _STA: Status'                                >> "$gSSDT"
+      echo '}'                                                                                >> "$gSSDT"
+  fi
 }
 
 #===============================================================================##
@@ -73,6 +148,8 @@ function _printHeader()
     echo ''                                                                                 >> "$gSSDT"
     echo 'DefinitionBlock ("", "SSDT", 1, "mfc88", "'$tableID'", 0x00000000)'               >> "$gSSDT"
     echo '{'                                                                                >> "$gSSDT"
+
+    _check_SSDTMethod $tableID
 }
 
 #===============================================================================##
