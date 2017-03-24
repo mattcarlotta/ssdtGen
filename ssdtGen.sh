@@ -5,6 +5,9 @@
 # User's home dir
 gPath="$HOME/Desktop"
 
+#DSDT external device path
+gExtDSDTPath='_SB_.PCI0'
+
 #SSDT's standard device path
 gSSDTPath='_SB.PCI0'
 
@@ -22,6 +25,9 @@ gIasl="$HOME/Documents/iasl.git"
 
 #Count to cycle thru arrays
 gCount=0
+
+# _DSM LEqual (0) or LNot (1) switches
+gDSM=0
 
 #SSDT Table-ID array
 gTableID=(
@@ -117,25 +123,6 @@ function _getSIPStat()
 }
 
 #===============================================================================##
-## GRAB GENERIC _DSM #
-##==============================================================================##
-function _getDSM()
-{
-  echo '        Method (_DSM, 4, NotSerialized)'                                          >> "$gSSDT"
-  echo '        {'                                                                        >> "$gSSDT"
-  echo '            If (LEqual (Arg2, Zero))'                                             >> "$gSSDT"
-  echo '            {'                                                                    >> "$gSSDT"
-  echo '                Return (Buffer (One)'                                             >> "$gSSDT"
-  echo '                {'                                                                >> "$gSSDT"
-  echo '                    0x03'                                                         >> "$gSSDT"
-  echo '                })'                                                               >> "$gSSDT"
-  echo '            }'                                                                    >> "$gSSDT"
-  echo ''                                                                                 >> "$gSSDT"
-  echo '            Return (Package ()'                                                   >> "$gSSDT"
-  echo '            {'                                                                    >> "$gSSDT"
-}
-
-#===============================================================================##
 ## CHECK DEVICE PROP IS NOT EMPTY #
 ##==============================================================================##
 function _testVariable()
@@ -170,6 +157,20 @@ function _setDevice_Status()
   echo '}'                                                                                >> "$gSSDT"
 }
 
+#===============================================================================##
+## GRAB PIN CONFIG #
+##==============================================================================##
+function _getDevice_BuiltIn()
+{
+  SSDT_NAME=$1
+
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "built-in",'                                             >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x00'                                                         >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+}
 
 #===============================================================================##
 ## GRAB PIN CONFIG #
@@ -186,7 +187,6 @@ function _getDevice_PinConfig()
   echo '                },'                                                               >> "$gSSDT"
 }
 
-
 #===============================================================================##
 ## GRAB DEVICE NAME #
 ##==============================================================================##
@@ -201,7 +201,6 @@ function _getDevice_Name()
   echo '                    '${SSDT_NAME}''                                               >> "$gSSDT"
   echo '                },'                                                               >> "$gSSDT"
 }
-
 
 #===============================================================================##
 ## GRAB DEVICE-TYPE #
@@ -258,18 +257,53 @@ function _getDevice_HdaGfx()
 }
 
 #===============================================================================##
+## GRAB SUBSYSTEM VENDOR DEVICE ID #
+##==============================================================================##
+function _getDevice_SubSysVendor_ID()
+{
+  key='subsystem-vendor-id'
+  SSDT_SSV_ID=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/subsystemvendorid//g')
+  _testVariable "${SSDT_SSV_ID}" "$device" "$key"
+
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "subsystem-vendor-id",'                                           >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x'${SSDT_SSV_ID:0:2}', 0x'${SSDT_SSV_ID:2:2}', 0x00, 0x00'   >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+}
+
+#===============================================================================##
+## GRAB SUBSYSTEM DEVICE ID #
+##==============================================================================##
+function _getDevice_SubSys_ID()
+{
+  key='subsystem-id'
+  SSDT_SUBSYS_ID=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/subsystemid//g')
+  _testVariable "${SSDT_SUBSYS_ID}" "$device" "$key"
+
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "subsystem-id",'                                                  >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x00, 0x'${SSDT_SUBSYS_ID:2:2}', 0x00, 0x00'                  >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+}
+
+#===============================================================================##
 ## GRAB DEVICE ID #
 ##==============================================================================##
 function _getDevice_ID()
 {
-  SSDT_DEVID=$(ioreg -p IODeviceTree -n "$device" -k device-id | grep device-id |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/deviceid//g')
+  key='device-id'
+  SSDT_DEVID=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/deviceid//g')
   _testVariable "${SSDT_DEVID}" "$device" "$key"
 
   echo ''                                                                                 >> "$gSSDT"
   echo '                "device-id",'                                                     >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
-  echo '                  0x'${SSDT_DEVID:0:2}', 0x'${SSDT_DEVID:2:2}', 0x00, 0x00'       >> "$gSSDT"
+  echo '                    0x'${SSDT_DEVID:0:2}', 0x'${SSDT_DEVID:2:2}', 0x00, 0x00'     >> "$gSSDT"
   echo '                },'                                                               >> "$gSSDT"
 }
 
@@ -286,7 +320,7 @@ function _getDevice_CompatibleID()
   echo '                "compatible",'                                                    >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
-  echo '                  "'$SSDT_COMPAT'"'                                               >> "$gSSDT"
+  echo '                    "'$SSDT_COMPAT'"'                                             >> "$gSSDT"
   echo '                },'                                                               >> "$gSSDT"
 }
 
@@ -303,6 +337,48 @@ function _getDevice_Model()
   echo '                {'                                                                >> "$gSSDT"
   echo '                    '$SSDTMODEL''                                                 >> "$gSSDT"
   echo '                },'                                                               >> "$gSSDT"
+}
+
+#===============================================================================##
+## GRAB LEqual _DSM #
+##==============================================================================##
+function _getDSM()
+{
+  local DSM=$1
+  echo $DSM
+
+  if [ "$DSM" = true ];
+    then
+      echo '            If (LNot (Arg2))'                                                 >> "$gSSDT"
+    else
+      echo '        Method (_DSM, 4, NotSerialized)'                                          >> "$gSSDT"
+      echo '        {'                                                                        >> "$gSSDT"
+      echo '            If (LEqual (Arg2, Zero))'                                         >> "$gSSDT"
+  fi
+
+  echo '            {'                                                                    >> "$gSSDT"
+  echo '                Return (Buffer (One)'                                             >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x03'                                                         >> "$gSSDT"
+  echo '                })'                                                               >> "$gSSDT"
+  echo '            }'                                                                    >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '            Return (Package ()'                                                   >> "$gSSDT"
+  echo '            {'                                                                    >> "$gSSDT"
+}
+
+#===============================================================================##
+## GRAB EXTERNAL DEVICE ADDRESS #
+##==============================================================================##
+function _getExtDevice_Address()
+{
+  device=$1
+
+  echo '    External ('${gExtDSDTPath}'.'${device}', DeviceObj)'                          >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '    Method ('${gSSDTPath}'.'${device}'._DSM, 4, NotSerialized)'                   >> "$gSSDT"
+  echo '    {'                                                                            >> "$gSSDT"
+  _getDSM true
 }
 
 #===============================================================================##
@@ -328,7 +404,7 @@ function _buildSSDT()
 {
   SSDT=$1
 
-  if [[ $SSDT -eq 'ALZA' ]];
+  if [[ "$SSDT" == 'ALZA' ]];
     then
       # ****need to switch HDEF to ALZA ****
       _getDevice_Address HDEF
@@ -340,7 +416,7 @@ function _buildSSDT()
       _close_Brackets
       _setDevice_Status
   fi
-  echo $SSDT
+
   if [[ "$SSDT" == "EVMR" ]];
     then
       # ****need to switch SPSR to EVMR ****
@@ -352,6 +428,33 @@ function _buildSSDT()
       _getDevice_Model '"Intel SPSR Chipset"'
       _close_Brackets
       _setDevice_Status
+  fi
+
+  if [[ "$SSDT" == "EVSS" ]];
+    then
+      _getExtDevice_Address EVSS
+      _getDevice_SlotName
+      _getDevice_BuiltIn
+      _getDevice_Name '"Intel sSata Controller"'
+      _getDevice_Model '"Intel 99 Series Chipset Family sSATA Controller"'
+      _getDevice_CompatibleID $device
+      _getDevice_Type '"AHCI Controller"'
+      _getDevice_ID
+      _close_Brackets
+  fi
+
+  # GFX1
+
+  if [[ "$SSDT" == "GLAN" ]];
+    then
+      _getExtDevice_Address GLAN
+      _getDevice_Model '"Intel i218V"'
+      _getDevice_Name '"Ethernet Controller"'
+      _getDevice_BuiltIn
+      _getDevice_ID
+      _getDevice_SubSys_ID
+      _getDevice_SubSysVendor_ID
+      _close_Brackets
   fi
 }
 
