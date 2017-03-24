@@ -40,7 +40,7 @@ gTableID=(
 [6]='LPC0'
 [7]='SAT1'
 [8]='SMBS'
-[9]='XHC_'
+[9]='XHC'
 [10]='XOSI'
 )
 
@@ -84,7 +84,7 @@ gTableChecksum=(
 # 7 SAT1, Length  0x00000138 (312), Checksum 0x9E, _DSM
 # 8 SMBS, Length  0x000000B6 (182), Checksum 0x7F, Device
 # 9 XHC,  Length  0x0000016F (367), Checksum 0xF4, _DSM
-# 10 XOIS,Length  0x000000B0 (176), Checksum 0xA2, Special
+# 10 XOSI,Length  0x000000B0 (176), Checksum 0xA2, Special
 
 #===============================================================================##
 ## USER ABORTS SCRIPT #
@@ -163,7 +163,27 @@ function _close_Brackets()
 ##==============================================================================##
 function _getPowerOptions()
 {
-
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "AAPL,current-available",'                                        >> "$gSSDT"
+  echo '                0x0834,'                                                          >> "$gSSDT"
+  echo '                "AAPL,current-extra",'                                            >> "$gSSDT"
+  echo '                0x0A8C,'                                                          >> "$gSSDT"
+  echo '                "AAPL,current-in-sleep",'                                         >> "$gSSDT"
+  echo '                0x0A8C,'                                                          >> "$gSSDT"
+  echo '                "AAPL,max-port-current-in-sleep",'                                >> "$gSSDT"
+  echo '                0x0834,'                                                          >> "$gSSDT"
+  echo '                "AAPL,device-internal",'                                          >> "$gSSDT"
+  echo '                0x00,'                                                            >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x00'                                                         >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "AAPL,clock-id",'                                                 >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x01'                                                         >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
 }
 
 #===============================================================================##
@@ -385,6 +405,36 @@ function _getDSM()
   echo '            {'                                                                    >> "$gSSDT"
 }
 
+#===============================================================================##
+## GRAB WINDOWS OSI  #
+##==============================================================================##
+function _getWindows_OSI()
+{
+  echo '    Method (XOSI, 1)'                   >> "$gSSDT"
+  echo '    {'                                                                            >> "$gSSDT"
+  echo '        Store(Package()'                                                          >> "$gSSDT"
+  echo '        {'                                                                        >> "$gSSDT"
+  echo '            "Windows",                // generic Windows query'                   >> "$gSSDT"
+  echo '            "Windows 2001",           // Windows XP'                              >> "$gSSDT"
+  echo '            "Windows 2001 SP2",       // Windows XP SP2'                          >> "$gSSDT"
+  echo '             //"Windows 2001.1",      // Windows Server 2003'                     >> "$gSSDT"
+  echo '            //"Windows 2001.1 SP1",   // Windows Server 2003 SP1'                 >> "$gSSDT"
+  echo '            "Windows 2006",           // Windows Vista'                           >> "$gSSDT"
+  echo '            "Windows 2006 SP1",       // Windows Vista SP1'                       >> "$gSSDT"
+  echo '            //"Windows 2006.1",      // Windows Server 2008'                     >> "$gSSDT"
+  echo '            "Windows 2009",           // Windows 7/Windows Server 2008 R2'        >> "$gSSDT"
+  echo '            "Windows 2012",           // Windows 8/Windows Server 2012'           >> "$gSSDT"
+  echo '            //"Windows 2013",           // Windows 8.1/Windows Server 2012 R2'    >> "$gSSDT"
+  echo '            //"Windows 2015",           // Windows 10/Windows Server TP'          >> "$gSSDT"
+  echo '        }, Local0)'                                                               >> "$gSSDT"
+  echo '       Return (Ones != Match(Local0, MEQ, Arg0, MTR, 0, 0))'                      >> "$gSSDT"
+  echo '    }'                                                                            >> "$gSSDT"
+  echo '}'                                                                                >> "$gSSDT"
+}
+
+#===============================================================================##
+## GRAB SMBS DEVICE  #
+##==============================================================================##
 function _getExtDevice_Address_SMBS()
 {
   device='SBUS'
@@ -398,7 +448,7 @@ function _getExtDevice_Address_SMBS()
   echo '        Device (BUS0)'                                                            >> "$gSSDT"
   echo '        {'                                                                        >> "$gSSDT"
   echo '            Name (_CID, "smbus") // _CID: Compatible ID'                          >> "$gSSDT"
-  echo '            Name (_ADR, Zero)'                                                        >> "$gSSDT"
+  echo '            Name (_ADR, Zero)'                                                    >> "$gSSDT"
   echo '            Device (DVL0)'                                                        >> "$gSSDT"
   echo '            {'                                                                    >> "$gSSDT"
   echo '                   Name (_ADR, 0x57)'                                             >> "$gSSDT"
@@ -413,7 +463,13 @@ function _getExtDevice_Address()
 {
   device=$1
 
-  echo '    External ('${gExtDSDTPath}'.'${device}', DeviceObj)'                          >> "$gSSDT"
+  if [[ "$device" == 'XHC' ]];
+    then
+      echo '    External ('${gExtDSDTPath}'.'${device}'_, DeviceObj)'                     >> "$gSSDT"
+    else
+      echo '    External ('${gExtDSDTPath}'.'${device}', DeviceObj)'                      >> "$gSSDT"
+  fi
+
   echo ''                                                                                 >> "$gSSDT"
   echo '    Method ('${gSSDTPath}'.'${device}'._DSM, 4, NotSerialized)'                   >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
@@ -540,15 +596,20 @@ function _buildSSDT()
       _setDevice_Status
   fi
 
-  if [[ "$SSDT" == "XHC_" ]];
+  if [[ "$SSDT" == "XHC" ]];
     then
-      _getExtDevice_Address XHC_
+      # ****need to switch XHC to XHCI ****
+      _getExtDevice_Address XHC
       _getDevice_ID
       _getDevice_Name '"Intel XHC Controller"'
       _getDevice_Model '"Intel 99 Series Chipset Family USB xHC Host Controller"'
       _getPowerOptions
+      _close_Brackets
+  fi
 
-      _setDevice_Status
+  if [[ "$SSDT" == "XOSI" ]];
+    then
+      _getWindows_OSI
   fi
 }
 
@@ -592,11 +653,11 @@ function _compileSSDT
   ((gCount++))
   chown $gUSER $gSSDT
   printf "${STYLE_BOLD}Compiling:${STYLE_RESET} ${gSSDTID}.dsl\n"
-  # iasl -G "$gSSDT"
+  iasl -G "$gSSDT"
   printf "${STYLE_BOLD}Removing:${STYLE_RESET} ${gSSDTID}.dsl\n"
   printf  "\n%s" '--------------------------------------------------------------------------------'
   printf '\n'
-  # rm "$gSSDT"
+  rm "$gSSDT"
   if [[ $gCount -lt 11 ]];
    then
      _printHeader
