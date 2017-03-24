@@ -43,6 +43,7 @@ gTableChecksum=(
 [9]='0xF4'
 [10]='0xA2'
 )
+gSSDTPath='_SB.PCI0'
 
 # 0 ALZA, Length  0x000000ED (237), Checksum 0xBC, Device
 # 1 EVMR, Length  0x00000108 (264), Checksum 0x5F, Device
@@ -115,12 +116,12 @@ function _check_SSDTMethod()
 {
   SSDT=$1
   # ****need to switch HDEF to ALZA ****
-SSDTADR=$(ioreg -p IODeviceTree -n "HDEF" -k acpi-path | grep acpi-path |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
-SSDTCOMPAT=$(ioreg -p IODeviceTree -n "HDEF@1B" -k compatible | grep compatible |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/compatible//g')
+  SSDTADR=$(ioreg -p IODeviceTree -n "HDEF" -k acpi-path | grep acpi-path |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+  SSDTCOMPAT=$(ioreg -p IODeviceTree -n "HDEF" -k compatible | grep compatible |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/compatible//g')
 
-  if [[ $SSDT -eq 'ALZA' ]];
-    then
-      echo '    Device (_SB.PCI0.HDEF)'                                                   >> "$gSSDT"
+  # if [[ $SSDT -eq 'ALZA' ]];
+  #   then
+      echo '    Device ('${gSSDTPath}'.HDEF)'                                             >> "$gSSDT"
       echo '    {'                                                                        >> "$gSSDT"
       echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                        >> "$gSSDT"
       _getDSM
@@ -159,7 +160,7 @@ SSDTCOMPAT=$(ioreg -p IODeviceTree -n "HDEF@1B" -k compatible | grep compatible 
       echo ''                                                                             >> "$gSSDT"
       echo '    Name (_SB.PCI0.ALZA._STA, Zero)  // _STA: Status'                         >> "$gSSDT"
       echo '}'                                                                            >> "$gSSDT"
-  fi
+  # fi
 }
 
 #===============================================================================##
@@ -168,7 +169,7 @@ SSDTCOMPAT=$(ioreg -p IODeviceTree -n "HDEF@1B" -k compatible | grep compatible 
 function _printHeader()
 {
     gSSDTID="SSDT-${gTableID[$gCount]}"
-    echo $gSSDTID
+    printf 'Creating: '${gSSDTID}'.dsl \n'
     gSSDT="${gPath}/${gSSDTID}.dsl"
 
     echo '/*'                                                                             >  "$gSSDT"
@@ -192,16 +193,28 @@ function _printHeader()
     echo '{'                                                                              >> "$gSSDT"
 
     _check_SSDTMethod ${gTableID[$gCount]}
+
 }
 
 # #===============================================================================##
-# ## GET SSDT TABLES #
+# ## COMPILE SSDT AND CLEAN UP #
 # ##==============================================================================##
-# function _getTables
-# {
-#
-#
-# }
+function _compileSSDT
+{
+  ((gCount++))
+  chown $gUSER $gSSDT
+  printf "${STYLE_BOLD}Compiling:${STYLE_RESET} ${gSSDTID}.dsl\n"
+  iasl -G "$gSSDT"
+  printf "${STYLE_BOLD}Removing:${STYLE_RESET} ${gSSDTID}.dsl\n"
+  printf  "\n%s" '--------------------------------------------------------------------------------'
+  printf '\n'
+  rm "$gSSDT"
+  if [[ $gCount -lt 11 ]];
+    then
+      _printHeader
+      _compileSSDT
+  fi
+}
 
 #===============================================================================##
 ## GREET USER #
@@ -223,9 +236,7 @@ function main()
   greet
   _getSIPStat
   _printHeader
-  #chown $gUSER $gSSDT
-  #printf "\n${STYLE_BOLD}Compiling:${STYLE_RESET} ${gSSDT}"
-  #iasl -G "$gSSDT"
+  _compileSSDT
 }
 
 trap '{ _clean_up; exit 1; }' INT
