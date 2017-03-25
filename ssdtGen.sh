@@ -198,7 +198,7 @@ function _checkDevice_Prop()
       echo ''
       echo "*—-ERROR—-* There was a problem locating $SSDT_DEVICE's $SSDT_PROP! Please send an IORegistry dump and a report of this error!"
       echo ''
-      _clean_up
+      #_clean_up
   fi
 }
 
@@ -281,6 +281,7 @@ function _setGPUDevice_Status()
 {
   D0XX=$(ioreg -p IODeviceTree -n ${PCISLOT} -r | grep D0 | sed -e 's/ *["+|=<a-z>:/_@-]//g; s/^ *//g; s/(.{4}).{0}//g')
   D0XX=${D0XX:0:4}
+  _checkDevice_Prop "${D0XX}" "$PCISLOT" "D0XX device"
 
   echo ''                                                                                 >> "$gSSDT"
   echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${GPU}'._STA, Zero)  // _STA: Status'      >> "$gSSDT"
@@ -327,28 +328,15 @@ function _getDSM()
 }
 
 #===============================================================================##
-## FIND D0XX DEVICE AND SET STATUS TO 0 #
-##==============================================================================##
-function _findDevice_D0xx()
-{
-  D0XX=$(ioreg -p IODeviceTree -n ${PCISLOT} -r | grep D0 | sed -e 's/ *["+|=<a-z>:/_@-]//g; s/^ *//g; s/(.{4}).{0}//g')
-  D0XX=${D0XX:0:4}
-  echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${D0XX}'._STA, Zero)  // _STA: Status'     >> "$gSSDT"
-  echo '}'                                                                                >> "$gSSDT"
-}
-
-
-#===============================================================================##
 ## FIND AUDIO PROPS #
 ##==============================================================================##
 function _findAUDIO()
 {
-  LEAFNODE='HDAU'
   DEVICE="${DEVICE:0:3}1"
   AUDIO=$DEVICE
 
   echo ''                                                                                 >> "$gSSDT"
-  echo '    Device ('${gSSDTPath}'.'${PCISLOT}'.'${LEAFNODE}')'                           >> "$gSSDT"
+  echo '    Device ('${gSSDTPath}'.'${PCISLOT}'.HDAU)'                                    >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Name (_ADR, One)  // _ADR: Address'                                       >> "$gSSDT"
   _getDSM
@@ -365,7 +353,7 @@ function _findAUDIO()
   PCISLOT=${GPUPATH:0:4} #BR3A
   DEVICE=${GPUPATH:4:4} #H000/GFX1
   GPU=$DEVICE
-
+  echo $GPUPATH
   _checkDevice_Prop "${GPUPATH}" "$SSDT" "$PROP"
 
   echo '    Device ('${gSSDTPath}'.'${PCISLOT}'.'${SSDT}')'                               >> "$gSSDT"
@@ -380,49 +368,49 @@ function _findAUDIO()
  ##==============================================================================##
  function _getWindows_OSI()
  {
-   echo '    Method (XOSI, 1)'                                                             >> "$gSSDT"
-   echo '    {'                                                                            >> "$gSSDT"
-   echo '        Store(Package()'                                                          >> "$gSSDT"
-   echo '        {'                                                                        >> "$gSSDT"
-   echo '            "Windows",                // generic Windows query'                   >> "$gSSDT"
-   echo '            "Windows 2001",           // Windows XP'                              >> "$gSSDT"
-   echo '            "Windows 2001 SP2",       // Windows XP SP2'                          >> "$gSSDT"
-   echo '             //"Windows 2001.1",      // Windows Server 2003'                     >> "$gSSDT"
-   echo '            //"Windows 2001.1 SP1",   // Windows Server 2003 SP1'                 >> "$gSSDT"
-   echo '            "Windows 2006",           // Windows Vista'                           >> "$gSSDT"
-   echo '            "Windows 2006 SP1",       // Windows Vista SP1'                       >> "$gSSDT"
-   echo '            //"Windows 2006.1",       // Windows Server 2008'                     >> "$gSSDT"
-   echo '            "Windows 2009",           // Windows 7/Windows Server 2008 R2'        >> "$gSSDT"
-   echo '            "Windows 2012",           // Windows 8/Windows Server 2012'           >> "$gSSDT"
-   echo '            //"Windows 2013",         // Windows 8.1/Windows Server 2012 R2'      >> "$gSSDT"
-   echo '            "Windows 2015",           // Windows 10/Windows Server TP'            >> "$gSSDT"
-   echo '        }, Local0)'                                                               >> "$gSSDT"
-   echo '       Return (Ones != Match(Local0, MEQ, Arg0, MTR, 0, 0))'                      >> "$gSSDT"
-   echo '    }'                                                                            >> "$gSSDT"
-   echo '}'                                                                                >> "$gSSDT"
+   echo '    Method (XOSI, 1)'                                                            >> "$gSSDT"
+   echo '    {'                                                                           >> "$gSSDT"
+   echo '        Store(Package()'                                                         >> "$gSSDT"
+   echo '        {'                                                                       >> "$gSSDT"
+   echo '            "Windows",                // generic Windows query'                  >> "$gSSDT"
+   echo '            "Windows 2001",           // Windows XP'                             >> "$gSSDT"
+   echo '            "Windows 2001 SP2",       // Windows XP SP2'                         >> "$gSSDT"
+   echo '             //"Windows 2001.1",      // Windows Server 2003'                    >> "$gSSDT"
+   echo '            //"Windows 2001.1 SP1",   // Windows Server 2003 SP1'                >> "$gSSDT"
+   echo '            "Windows 2006",           // Windows Vista'                          >> "$gSSDT"
+   echo '            "Windows 2006 SP1",       // Windows Vista SP1'                      >> "$gSSDT"
+   echo '            //"Windows 2006.1",       // Windows Server 2008'                    >> "$gSSDT"
+   echo '            "Windows 2009",           // Windows 7/Windows Server 2008 R2'       >> "$gSSDT"
+   echo '            "Windows 2012",           // Windows 8/Windows Server 2012'          >> "$gSSDT"
+   echo '            //"Windows 2013",         // Windows 8.1/Windows Server 2012 R2'     >> "$gSSDT"
+   echo '            "Windows 2015",           // Windows 10/Windows Server TP'           >> "$gSSDT"
+   echo '        }, Local0)'                                                              >> "$gSSDT"
+   echo '       Return (Ones != Match(Local0, MEQ, Arg0, MTR, 0, 0))'                     >> "$gSSDT"
+   echo '    }'                                                                           >> "$gSSDT"
+   echo '}'                                                                               >> "$gSSDT"
  }
 
  #===============================================================================##
  ## GRAB SMBS DEVICE  #
  ##==============================================================================##
- function _getExtDevice_Address_SMBS()
+ function _findDevice_Address()
  {
-   device='SBUS'
+   DEVICE=$1
    PROP='acpi-path'
    SSDTADR=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
    _checkDevice_Prop "${SSDTADR}" "$DEVICE" "$PROP"
 
-   echo '    Device ('${gSSDTPath}'.'${DEVICE}')'                                          >> "$gSSDT"
-   echo '    {'                                                                            >> "$gSSDT"
-   echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
-   echo '        Device (BUS0)'                                                            >> "$gSSDT"
-   echo '        {'                                                                        >> "$gSSDT"
-   echo '            Name (_CID, "smbus") // _CID: Compatible ID'                          >> "$gSSDT"
-   echo '            Name (_ADR, Zero)'                                                    >> "$gSSDT"
-   echo '            Device (DVL0)'                                                        >> "$gSSDT"
-   echo '            {'                                                                    >> "$gSSDT"
-   echo '                   Name (_ADR, 0x57)'                                             >> "$gSSDT"
-   echo '                   Name (_CID, "diagsvault")'                                     >> "$gSSDT"
+   echo '    Device ('${gSSDTPath}'.SBUS)'                                                >> "$gSSDT"
+   echo '    {'                                                                           >> "$gSSDT"
+   echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                           >> "$gSSDT"
+   echo '        Device (BUS0)'                                                           >> "$gSSDT"
+   echo '        {'                                                                       >> "$gSSDT"
+   echo '            Name (_CID, "smbus") // _CID: Compatible ID'                         >> "$gSSDT"
+   echo '            Name (_ADR, Zero)'                                                   >> "$gSSDT"
+   echo '            Device (DVL0)'                                                       >> "$gSSDT"
+   echo '            {'                                                                   >> "$gSSDT"
+   echo '                   Name (_ADR, 0x57)'                                            >> "$gSSDT"
+   echo '                   Name (_CID, "diagsvault")'                                    >> "$gSSDT"
    _getDSM
  }
 
@@ -471,7 +459,7 @@ function _buildSSDT()
   if [[ "$SSDT" == 'ALZA' ]];
     then
       # ****need to switch HDEF to ALZA ****
-      _getDevice_ACPI_Path HDEF
+      _getDevice_ACPI_Path $SSDT
       _setDevice '"model"' '"Realtek Audio Controller"'
       _setDevice '"hda-gfx"' '"onboard-1"'
       _setDevice '"layout-id"' '0x01, 0x00, 0x00, 0x00'
@@ -484,7 +472,7 @@ function _buildSSDT()
   if [[ "$SSDT" == "EVMR" ]];
     then
       # ****need to switch SPSR to EVMR ****
-      _getDevice_ACPI_Path SPSR
+      _getDevice_ACPI_Path $SSDT
       _setDevice '"AAPL,slot-name"' '"Built In"'
       _setDevice '"device_type"' '"Intel SPSR Controller"'
       _setDevice '"name"' '"C610/X99 Series Chipset SPSR"'
@@ -496,7 +484,7 @@ function _buildSSDT()
 
   if [[ "$SSDT" == "EVSS" ]];
     then
-      _getExtDevice_Address EVSS
+      _getExtDevice_Address $SSDT
       _setDevice '"AAPL,slot-name"' '"Built In"'
       _setDevice '"built-in"' '0x00'
       _setDevice '"name"' '"Intel sSata Controller"'
@@ -542,7 +530,7 @@ function _buildSSDT()
 
   if [[ "$SSDT" == "GLAN" ]];
     then
-      _getExtDevice_Address GLAN
+      _getExtDevice_Address $SSDT
       _setDevice '"model"' '"Intel i218V"'
       _setDevice '"name"' '"Ethernet Controller"'
       _setDevice '"built-in"' '0x00'
@@ -555,7 +543,7 @@ function _buildSSDT()
   if [[ "$SSDT" == "HECI" ]];
     then
         # ****need to switch IMEI to HECI ****
-      _getDevice_ACPI_Path IMEI
+      _getDevice_ACPI_Path $SSDT
       _setDevice '"AAPL,slot-name"' '"Built In"'
       _setDevice '"model"' '"IMEI Controller"'
       _setDevice '"built-in"' '0x00'
@@ -567,14 +555,14 @@ function _buildSSDT()
 
   if [[ "$SSDT" == "LPC0" ]];
     then
-      _getExtDevice_Address LPC0
+      _getExtDevice_Address $SSDT
       _findDeviceProp 'compatible'
       _close_Brackets
   fi
 
   if [[ "$SSDT" == "SAT1" ]];
     then
-      _getExtDevice_Address SAT1
+      _getExtDevice_Address $SSDT
       _setDevice '"AAPL,slot-name"' '"Built In"'
       _setDevice '"built-in"' '0x00'
       _setDevice '"device-type"' '"AHCI Controller"'
@@ -588,7 +576,7 @@ function _buildSSDT()
   if [[ "$SSDT" == "SMBS" ]];
     then
         # ****need to switch SBUS to SMBS ****
-      _getExtDevice_Address_SMBS
+      _findDevice_Address $SSDT
       _findDeviceProp 'device-id'
       _close_Brackets true
       _setDevice_Status
@@ -596,7 +584,7 @@ function _buildSSDT()
 
   if [[ "$SSDT" == "XHC" ]];
     then
-      _getExtDevice_Address XHC
+      _getExtDevice_Address $SSDT
       _setDevice '"name"' '"Intel XHC Controller"'
       _setDevice '"model"' '"Intel 99 Series Chipset Family USB xHC Host Controller"'
       _setDevice_NoBuffer '"AAPL,current-available"' '0x0834'
