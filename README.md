@@ -4,7 +4,7 @@ Introduction
 
 ssdtGen is an automated bash script that attempts to build and compile SSDTs for X99 systems running Mac OS.
 
-You can download the latest version of iMessageTool to your Desktop by entering the following command in a terminal window:
+You can download the latest version of ssdtGen to your Desktop by entering the following command in a terminal window:
 ```
 git clone git@github.com:mattcarlotta/ssdtGen.git ~/Desktop/ssdtGen
 ```
