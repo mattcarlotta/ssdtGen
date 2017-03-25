@@ -25,7 +25,9 @@ Lastly, use this command to run the script:
 
 **Special notes:
 - DSDT ACPI tables must be vanilla(1). If any devices are renamed, forget it about it. Won't work.
-(1) XHCI must be named XHC via config.plist DSDT patch (recommended to install USBInjectAll.kext + XHCI-x99-injector.kext with a custom SSDT-UAIC.aml):
+
+1.) XHCI must be named XHC via config.plist DSDT patch (recommended to install USBInjectAll.kext + XHCI-x99-injector.kext with a custom SSDT-UAIC.aml):
+
 ```
 Comment: Change XHCI to XHC
 Find: 58484349
