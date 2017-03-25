@@ -20,6 +20,7 @@ gSSDTID=""
 #Currently logged in user
 gUSER=$(stat -f%Su /dev/console)
 
+gMaciASL="$HOME/Applications/MaciASL.app"
 #IASL compiler directory
 gIasl="$HOME/Documents/iasl.git"
 
@@ -123,6 +124,38 @@ function _getSIPStat()
 }
 
 #===============================================================================##
+## CHECK IASL IS INSTALLED #
+##==============================================================================##
+function _checkIasl()
+{
+  if [ -d "MaciASL.app" ];
+    then
+      echo 'MaciASL is installed!' > /dev/null 2>&1
+    else
+        printf "*—-ERROR—-* MaciASL isn't installed in the $HOME/Applications!\n"
+        printf " \n"
+        printf "Attempting to download from Rehabman's Bitbucket...\n"
+        curl -o $HOME/Desktop/MaciASL.zip https://bitbucket.org/RehabMan/os-x-maciasl-patchmatic/downloads/RehabMan-MaciASL-2017-0117.zip
+        exit 0;
+
+  fi
+
+  if [ ! -d "$HOME/Documents/iasl.git" ];
+    then
+      printf "*—-ERROR—-* IASL isn't installed in the $HOME/Documents!\n"
+      printf " \n"
+      printf "Attempting to download from Rehabman's Bitbucket...\n"
+      exit 0;
+      # if [[ $? -ne 0 ]];
+      #   then
+      #     printf ' \n'
+      #     printf 'ERROR! Make sure your network connection is active and/or make sure you have already installed Xcode from the App store!\n'
+      #     exit 1
+      #   fi
+  fi
+}
+
+#===============================================================================##
 ## CHECK DEVICE PROP IS NOT EMPTY #
 ##==============================================================================##
 function _testVariable()
@@ -134,7 +167,7 @@ function _testVariable()
   if [ -z "$SSDT_PROP" ]
     then
       echo ''
-      echo "*—-ERROR—-* There was a problem locating $SSDT_DEVICE's $SSDT_KEY! Please send a report of this error!"
+      echo "*—-ERROR—-* There was a problem locating $SSDT_DEVICE's $SSDT_KEY! Please send an IOReg dump and a report of this error!"
       echo ''
       _clean_up
   fi
@@ -568,7 +601,7 @@ function _buildSSDT()
   if [[ "$SSDT" == "LPC0" ]];
     then
         # ****need to switch IMEI to HECI ****
-      _getExtDevice_Address LPC0
+      _getExtDevice_Address LPC
       _getDevice_CompatibleID $device
       _close_Brackets
   fi
@@ -684,6 +717,7 @@ function main()
   clear
   greet
   _getSIPStat
+  _checkIasl
   _printHeader
   _compileSSDT
 }
