@@ -191,12 +191,12 @@ function _checkDevice_Prop()
 {
   SSDT_PROP=$1
   SSDT_DEVICE=$2
-  SSDT_KEY=$3
+  SSDT_PROP=$3
 
   if [ -z "$SSDT_PROP" ]
     then
       echo ''
-      echo "*—-ERROR—-* There was a problem locating $SSDT_DEVICE's $SSDT_KEY! Please send an IOReg dump and a report of this error!"
+      echo "*—-ERROR—-* There was a problem locating $SSDT_DEVICE's $SSDT_PROP! Please send an IORegistry dump and a report of this error!"
       echo ''
       _clean_up
   fi
@@ -225,7 +225,7 @@ function _close_Brackets()
 ##==============================================================================##
 function _getWindows_OSI()
 {
-  echo '    Method (XOSI, 1)'                   >> "$gSSDT"
+  echo '    Method (XOSI, 1)'                                                             >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Store(Package()'                                                          >> "$gSSDT"
   echo '        {'                                                                        >> "$gSSDT"
@@ -253,11 +253,11 @@ function _getWindows_OSI()
 function _getExtDevice_Address_SMBS()
 {
   device='SBUS'
-  key='acpi-path'
-  SSDTADR=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
-  _testVariable "${SSDTADR}" "$device" "$key"
+  PROP='acpi-path'
+  SSDTADR=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+  _testVariable "${SSDTADR}" "$DEVICE" "$PROP"
 
-  echo '    Device ('${gSSDTPath}'.'${device}')'                                          >> "$gSSDT"
+  echo '    Device ('${gSSDTPath}'.'${DEVICE}')'                                          >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
   echo '        Device (BUS0)'                                                            >> "$gSSDT"
@@ -280,8 +280,8 @@ function _setDevice_NoBuffer()
   PROP=$1
   VALUE=$2
 
-  echo '                '$PROP','                                                 >> "$gSSDT"
-  echo '                '$VALUE','                                                         >> "$gSSDT"
+  echo '                '$PROP','                                                         >> "$gSSDT"
+  echo '                '$VALUE','                                                        >> "$gSSDT"
 }
 
 #===============================================================================##
@@ -294,7 +294,7 @@ function _setDevice()
 
   echo ''                                                                                 >> "$gSSDT"
   echo '                '$PROP','                                                         >> "$gSSDT"
-  echo '                Buffer()'                                                                >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
   echo '                    '$VALUE''                                                     >> "$gSSDT"
   echo '                },'                                                               >> "$gSSDT"
@@ -305,12 +305,12 @@ function _setDevice()
 ##==============================================================================##
 function _setDevice_SubSysVendor_ID()
 {
-  key='subsystem-vendor-id'
-  SSDT_SSV_ID=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/subsystemvendorid//g')
-  _checkDevice_Prop "${SSDT_SSV_ID}" "$device" "$key"
+  PROP='subsystem-vendor-id'
+  SSDT_SSV_ID=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/subsystemvendorid//g')
+  _checkDevice_Prop "${SSDT_SSV_ID}" "$DEVICE" "$PROP"
 
   echo ''                                                                                 >> "$gSSDT"
-  echo '                "'$key'",'                                                        >> "$gSSDT"
+  echo '                "'$PROP'",'                                                       >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
   echo '                    0x'${SSDT_SSV_ID:0:2}', 0x'${SSDT_SSV_ID:2:2}', 0x00, 0x00'   >> "$gSSDT"
@@ -322,12 +322,12 @@ function _setDevice_SubSysVendor_ID()
 ##==============================================================================##
 function _setDevice_SubSys_ID()
 {
-  key='subsystem-id'
-  SSDT_SUBSYS_ID=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/subsystemid//g')
-  _checkDevice_Prop "${SSDT_SUBSYS_ID}" "$device" "$key"
+  PROP='subsystem-id'
+  SSDT_SUBSYS_ID=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/subsystemid//g')
+  _checkDevice_Prop "${SSDT_SUBSYS_ID}" "$DEVICE" "$PROP"
 
   echo ''                                                                                 >> "$gSSDT"
-  echo '                "'$key'",'                                                        >> "$gSSDT"
+  echo '                "'$PROP'",'                                                       >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
   echo '                    0x00, 0x'${SSDT_SUBSYS_ID:2:2}', 0x00, 0x00'                  >> "$gSSDT"
@@ -339,12 +339,12 @@ function _setDevice_SubSys_ID()
 ##==============================================================================##
 function _setDevice_ID()
 {
-  key='device-id'
-  SSDT_DEVID=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/deviceid//g')
-  _checkDevice_Prop "${SSDT_DEVID}" "$device" "$key"
+  PROP='device-id'
+  SSDT_DEVID=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/deviceid//g')
+  _checkDevice_Prop "${SSDT_DEVID}" "$DEVICE" "$PROP"
 
   echo ''                                                                                 >> "$gSSDT"
-  echo '                "'$key'",'                                                     >> "$gSSDT"
+  echo '                "'$PROP'",'                                                       >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
   echo '                    0x'${SSDT_DEVID:0:2}', 0x'${SSDT_DEVID:2:2}', 0x00, 0x00'     >> "$gSSDT"
@@ -356,12 +356,12 @@ function _setDevice_ID()
 ##==============================================================================##
 function _setDevice_CompatibleID()
 {
-  key='compatible'
-  SSDT_COMPAT=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/compatible//g')
-  _checkDevice_Prop "${SSDT_COMPAT}" "$device" "$key"
+  PROP='compatible'
+  SSDT_COMPAT=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/compatible//g')
+  _checkDevice_Prop "${SSDT_COMPAT}" "$DEVICE" "$PROP"
 
   echo ''                                                                                 >> "$gSSDT"
-  echo '                 "'$key'",'                                                    >> "$gSSDT"
+  echo '                 "'$PROP'",'                                                      >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
   echo '                    "'$SSDT_COMPAT'"'                                             >> "$gSSDT"
@@ -410,16 +410,16 @@ function _getDSM()
 ##==============================================================================##
 function _getExtDevice_Address()
 {
-  device=$1
+  DEVICE=$1
 
-  if [[ "$device" == 'XHC' ]];
+  if [[ "$DEVICE" == 'XHC' ]];
     then
-      local dash="_"
+      local underscore="_"
   fi
 
-  echo '    External ('${gExtDSDTPath}'.'${device}''${dash}', DeviceObj)'                      >> "$gSSDT"
+  echo '    External ('${gExtDSDTPath}'.'${DEVICE}''${underscore}', DeviceObj)'           >> "$gSSDT"
   echo ''                                                                                 >> "$gSSDT"
-  echo '    Method ('${gSSDTPath}'.'${device}'._DSM, 4, NotSerialized)'                   >> "$gSSDT"
+  echo '    Method ('${gSSDTPath}'.'${DEVICE}'._DSM, 4, NotSerialized)'                   >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
   _getDSM true
 }
@@ -429,12 +429,12 @@ function _getExtDevice_Address()
 ##==============================================================================##
 function _getDevice_Address()
 {
-  device=$1
-  key='acpi-path'
-  SSDTADR=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
-  _testVariable "${SSDTADR}" "$device" "$key"
+  DEVICE=$1
+  PROP='acpi-path'
+  SSDTADR=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+  _testVariable "${SSDTADR}" "$DEVICE" "$PROP"
 
-  echo '    Device ('${gSSDTPath}'.'${device}')'                                          >> "$gSSDT"
+  echo '    Device ('${gSSDTPath}'.'${DEVICE}')'                                          >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
   _getDSM
@@ -454,7 +454,7 @@ function _buildSSDT()
       _setDevice '"model"' '"Realtek Audio Controller"'
       _setDevice '"hda-gfx"' '"onboard-1"'
       _setDevice '"layout-id"' '0x01, 0x00, 0x00, 0x00'
-      _setDevice_CompatibleID $device
+      _setDevice_CompatibleID $DEVICE
       _setDevice '"PinConfigurations"' '0x00'
       _close_Brackets
       _setDevice_Status
@@ -480,7 +480,7 @@ function _buildSSDT()
       _setDevice '"built-in"' '0x00'
       _setDevice '"name"' '"Intel sSata Controller"'
       _setDevice '"model"' '"Intel 99 Series Chipset Family sSATA Controller"'
-      _setDevice_CompatibleID $device
+      _setDevice_CompatibleID $DEVICE
       _setDevice '"device_type"' '"AHCI Controller"'
       _setDevice_ID
       _close_Brackets
@@ -529,7 +529,7 @@ function _buildSSDT()
       _getDevice_Model '"IMEI Controller"'
       _setDevice '"built-in"' '0x00'
       _setDevice_ID
-      _setDevice_CompatibleID $device
+      _setDevice_CompatibleID $DEVICE
       _close_Brackets
       _setDevice_Status
   fi
@@ -537,7 +537,7 @@ function _buildSSDT()
   if [[ "$SSDT" == "LPC0" ]];
     then
       _getExtDevice_Address LPC0
-      _setDevice_CompatibleID $device
+      _setDevice_CompatibleID $DEVICE
       _close_Brackets
   fi
 
@@ -549,7 +549,7 @@ function _buildSSDT()
       _setDevice '"name"' '"Intel AHCI Controller"'
       _setDevice '"model"' '"Intel 99 Series Chipset Family SATA Controller"'
       _setDevice_ID
-      _setDevice_CompatibleID $device
+      _setDevice_CompatibleID $DEVICE
       _setDevice '"device-type"' '"AHCI Controller"'
       _close_Brackets
   fi
