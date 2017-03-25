@@ -142,8 +142,8 @@ function _checkIasl()
         printf "*—-ERROR—-* MaciASL isn't installed in the $HOME/Applications!\n"
         printf " \n"
         printf "Attempting to download from Github...\n"
-        cd ~/Desktop
-         curl -O https://github.com/mattcarlotta/ssdtGen/blob/master/tools/MaciASL.zip
+        cd ~/Documents
+        curl -O https://github.com/mattcarlotta/ssdtGen/tree/master/tools/MaciASL.app
         #unzip MaciASL.zip
         #rm MaciASL.zip
         exit 0;
