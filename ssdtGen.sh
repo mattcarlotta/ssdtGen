@@ -217,7 +217,7 @@ function _checkDevice_Prop()
       echo ''
       echo "*—-ERROR—-* There was a problem locating $SSDT_DEVICE's $SSDT_PROP! Please send an IORegistry dump and a report of this error!"
       echo ''
-      #_clean_up
+      _clean_up
   fi
 }
 
