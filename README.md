@@ -8,7 +8,7 @@ You can download the latest version of iMessageTool to your Desktop by entering 
 ```
 curl -o ~/Desktop/ssdtGen.sh https://github.com/mattcarlotta/ssdtGen/blob/master/ssdtGen.sh
 ```
-You can then verify the downloaded size (should be about 25kb):
+You can then verify the downloaded size (should be about 29kb):
 ```
 wc -c ~/Desktop/ssdtGen.sh
 ```
