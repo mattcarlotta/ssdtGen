@@ -30,15 +30,4 @@ DSDT ACPI tables must be vanilla(1). If any devices are renamed, forget it about
 - <a href="https://www.tonymacx86.com/threads/guide-creating-a-custom-ssdt-for-usbinjectall-kext.211311/">Rehabman's Guide for Creating a Custom SSDT for USBInjectAll.kext</a>
 - <a href="http://www.insanelymac.com/forum/topic/313296-guide-mac-osx-1012-with-x99-broadwell-e-family-and-haswell-e-family/page-53#entry2354822"> My Guide for using UsbInjectAll.kext with a Custom SSDT-UIAC.aml</a>
 
-```
-Comment: Change XHCI to XHC
-Find: 58484349
-Replace: 5848435f
-
-Comment: Change XHC1 to XHC
-Find: 58484331
-Replace: 5848435F
-
-```
-
 **Note: This script is highly experimental! Use any generated SSDTs with caution.
