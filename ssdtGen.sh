@@ -349,11 +349,104 @@ function _getDevice_LayoutID()
 ##==============================================================================##
 function _getDevice_HdaGfx()
 {
+  option=$1
+
   echo ''                                                                                 >> "$gSSDT"
   echo '                "hda-gfx",'                                                       >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
-  echo '                    "onboard-1"'                                                  >> "$gSSDT"
+  echo '                    "onboard-'${option}'"'                                        >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+}
+
+#===============================================================================##
+## GRAB GFX Card Statics #
+##==============================================================================##
+function _getDevice_GFXStaticOptions()
+{
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "AAPL,slot-name",'                                                >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    "Slot-1"'                                                     >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@2,AAPL,boot-display",'                                          >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x02'                                                         >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@0,name",'                                                       >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    "NVDA,Display-A"'                                             >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@1,name",'                                                       >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    "NVDA,Display-B"'                                             >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@2,name",'                                                       >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    "NVDA,Display-C"'                                             >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@3,name",'                                                       >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    "NVDA,Display-D"'                                             >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@4,name",'                                                       >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    "NVDA,Display-E"'                                             >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@5,name",'                                                       >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    "NVDA,Display-F"'                                             >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@0,connector-type",'                                             >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x00, 0x08, 0x00, 0x00'                                       >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@1,connector-type",'                                             >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x00, 0x08, 0x00, 0x00'                                       >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@2,connector-type",'                                             >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x00, 0x08, 0x00, 0x00'                                       >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@3,connector-type",'                                             >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x00, 0x08, 0x00, 0x00'                                       >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@4,connector-type",'                                             >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x00, 0x08, 0x00, 0x00'                                       >> "$gSSDT"
+  echo '                },'                                                               >> "$gSSDT"
+  echo ''                                                                                 >> "$gSSDT"
+  echo '                "@5,connector-type",'                                             >> "$gSSDT"
+  echo '                Buffer()'                                                         >> "$gSSDT"
+  echo '                {'                                                                >> "$gSSDT"
+  echo '                    0x00, 0x08, 0x00, 0x00'                                       >> "$gSSDT"
   echo '                },'                                                               >> "$gSSDT"
 }
 
@@ -527,11 +620,10 @@ function _getExtDevice_Address()
 
   if [[ "$device" == 'XHC' ]];
     then
-      echo '    External ('${gExtDSDTPath}'.'${device}'_, DeviceObj)'                     >> "$gSSDT"
-    else
-      echo '    External ('${gExtDSDTPath}'.'${device}', DeviceObj)'                      >> "$gSSDT"
+      local dash="_"
   fi
-
+  
+  echo '    External ('${gExtDSDTPath}'.'${device}''${dash}', DeviceObj)'                      >> "$gSSDT"
   echo ''                                                                                 >> "$gSSDT"
   echo '    Method ('${gSSDTPath}'.'${device}'._DSM, 4, NotSerialized)'                   >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
@@ -566,7 +658,7 @@ function _buildSSDT()
       # ****need to switch HDEF to ALZA ****
       _getDevice_Address HDEF
       _getDevice_Model '"Realtek Audio Controller"'
-      _getDevice_HdaGfx
+      _getDevice_HdaGfx 1
       _getDevice_LayoutID
       _getDevice_CompatibleID $device
       _getDevice_PinConfig
@@ -601,6 +693,12 @@ function _buildSSDT()
   fi
 
   # GFX1
+  #if [[ "$SSDT" == "GFX1" ]];
+    #then
+  #_getDevice_GFXStaticOptions
+  #_getDevice_HdaGfx 2
+  #_getDevice_ID
+  #_getDevice_Name '"Display"'
 
   if [[ "$SSDT" == "GLAN" ]];
     then
@@ -629,7 +727,6 @@ function _buildSSDT()
 
   if [[ "$SSDT" == "LPC0" ]];
     then
-        # ****need to switch IMEI to HECI ****
       _getExtDevice_Address LPC0
       _getDevice_CompatibleID $device
       _close_Brackets
@@ -637,7 +734,6 @@ function _buildSSDT()
 
   if [[ "$SSDT" == "SAT1" ]];
     then
-        # ****need to switch IMEI to HECI ****
       _getExtDevice_Address SAT1
       _getDevice_SlotName
       _getDevice_BuiltIn
@@ -660,7 +756,6 @@ function _buildSSDT()
 
   if [[ "$SSDT" == "XHC" ]];
     then
-      # ****need to switch XHC to XHCI ****
       _getExtDevice_Address XHC
       _getDevice_ID
       _getDevice_Name '"Intel XHC Controller"'
