@@ -26,10 +26,9 @@ gMaciASL="$HOME/Applications/MaciASL.app"
 gIasl="$HOME/Documents/iasl.git"
 
 #MaciASL download directory
-gGithubMaciASL="https://github.com/mattcarlotta/ssdtGen/blob/master/tools/MaciASL.zip?raw=true"
+gGithub="https://github.com/mattcarlotta/ssdtGen/blob/master/tools/MaciASL.zip"
 
-tempDir="$HOME/Documents/"
-gDirectoryMaciASL="$HOME/Applications"
+gDirectory="$HOME/Desktop"
 
 #Count to cycle thru arrays
 gCount=0
@@ -142,8 +141,8 @@ function _checkIasl()
         printf "*—-ERROR—-* MaciASL isn't installed in the $HOME/Applications!\n"
         printf " \n"
         printf "Attempting to download from Github...\n"
-        cd ~/Documents
-        curl -O https://github.com/mattcarlotta/ssdtGen/tree/master/tools/MaciASL.app
+        cd ~/Desktop
+        curl -LOk $gGithub
         #unzip MaciASL.zip
         #rm MaciASL.zip
         exit 0;
