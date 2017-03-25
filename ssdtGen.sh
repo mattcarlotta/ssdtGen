@@ -26,7 +26,7 @@ gMaciASL="$HOME/Applications/MaciASL.app"
 gIasl="$HOME/Documents/iasl.git"
 
 #MaciASL download directory
-gGithub="https://github.com/mattcarlotta/ssdtGen/blob/master/tools/MaciASL.zip"
+gGithub="https://github.com/mattcarlotta/ssdtGen/blob/master/tools/MaciASL.tar.gz"
 
 gDirectory="$HOME/Desktop"
 
@@ -610,7 +610,7 @@ function _buildSSDT()
   if [[ "$SSDT" == "LPC0" ]];
     then
         # ****need to switch IMEI to HECI ****
-      _getExtDevice_Address LPC
+      _getExtDevice_Address LPC0
       _getDevice_CompatibleID $device
       _close_Brackets
   fi
@@ -726,7 +726,7 @@ function main()
   clear
   greet
   _getSIPStat
-  _checkIasl
+#  _checkIasl
   _printHeader
   _compileSSDT
 }
