@@ -6,19 +6,19 @@ ssdtGen is an automated bash script that attempts to build and compile SSDTs for
 
 You can download the latest version of iMessageTool to your Desktop by entering the following command in a terminal window:
 ```
-curl -o ~/Desktop/ssdtGen.sh https://github.com/mattcarlotta/ssdtGen/blob/master/ssdtGen.sh
+git clone git@github.com:mattcarlotta/ssdtGen.git ~/Desktop/ssdtGen
 ```
 You can then verify the downloaded size (should be about 29kb):
 ```
-wc -c ~/Desktop/ssdtGen.sh
+wc -c ~/Desktop/ssdtGen/ssdtGen.sh
 ```
 You must change the file permissions to make it executable:
 ```
-chmod +x ~/Desktop/ssdtGen.sh
+chmod +x ~/Desktop/ssdtGen/ssdtGen.sh
 ```
 Lastly, use this command to run the script:
 ```
-~/Desktop/ssdtGen.sh
+~/Desktop/ssdtGen/ssdtGen.sh
 ```
 
 --------------------------------------------------------------------------------------------------------------
