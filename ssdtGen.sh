@@ -21,8 +21,15 @@ gSSDTID=""
 gUSER=$(stat -f%Su /dev/console)
 
 gMaciASL="$HOME/Applications/MaciASL.app"
+
 #IASL compiler directory
 gIasl="$HOME/Documents/iasl.git"
+
+#MaciASL download directory
+gGithubMaciASL="https://github.com/mattcarlotta/ssdtGen/blob/master/tools/MaciASL.zip"
+
+tempDir="$HOME/Documents/"
+gDirectoryMaciASL="$HOME/Applications"
 
 #Count to cycle thru arrays
 gCount=0
@@ -134,8 +141,11 @@ function _checkIasl()
     else
         printf "*—-ERROR—-* MaciASL isn't installed in the $HOME/Applications!\n"
         printf " \n"
-        printf "Attempting to download from Rehabman's Bitbucket...\n"
-        curl -o $HOME/Desktop/MaciASL.zip https://bitbucket.org/RehabMan/os-x-maciasl-patchmatic/downloads/RehabMan-MaciASL-2017-0117.zip
+        printf "Attempting to download...\n"
+        cd "$tempDir"
+        curl -sS $gGithubMaciASL >> MaciASL.zip
+        #unzip MaciASL.zip
+        #rm MaciASL.zip
         exit 0;
 
   fi
