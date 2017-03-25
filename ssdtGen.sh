@@ -26,9 +26,12 @@ gMaciASL="$HOME/Applications/MaciASL.app"
 gIasl="$HOME/Documents/iasl.git"
 
 #MaciASL download directory
-gGithub="https://github.com/mattcarlotta/ssdtGen/blob/master/tools/MaciASL.tar.gz"
+gRehabmanMaciASL="https://bitbucket.org/RehabMan/os-x-maciasl-patchmatic/downloads/RehabMan-MaciASL-2017-0117.zip"
+gRehabmanIASL="https://github.com/RehabMan/Intel-iasl.git"
 
-gDirectory="$HOME/Desktop"
+gMaciASLFile="RehabMan-MaciASL-2017-0117.zip"
+
+gDirectory="$HOME/Documents"
 
 #Count to cycle thru arrays
 gCount=0
@@ -132,35 +135,52 @@ function _getSIPStat()
 #===============================================================================##
 ## CHECK IASL IS INSTALLED #
 ##==============================================================================##
-function _checkIasl()
+function _checkPreInstalled()
 {
-  if [ -d "MaciASL.app" ];
+  if [ -x "/Applications/MaciASL.app" ];
     then
-      echo 'MaciASL is installed!' > /dev/null 2>&1
+      echo 'MaciASL is already installed!' > /dev/null 2>&1
     else
-        printf "*—-ERROR—-* MaciASL isn't installed in the $HOME/Applications!\n"
-        printf " \n"
-        printf "Attempting to download from Github...\n"
-        cd ~/Desktop
-        curl -LOk $gGithub
-        #unzip MaciASL.zip
-        #rm MaciASL.zip
-        exit 0;
-
+      printf "*—-ERROR—-* MaciASL isn't installed in the $HOME/Applications directory!\n"
+      printf " \n"
+      printf "Attempting to download MaciASL from Rehabman's Bitbucket...\n"
+      cd "$gDirectory"
+      curl --silent -O -L $gRehabmanMaciASL
+      if [[ $? -ne 0 ]];
+        then
+          printf ' \n'
+          printf 'ERROR! Make sure your network connection is active and/or make sure you have already installed Xcode from the App store!\n'
+          exit 1
+      fi
+      printf " \n"
+      printf "Installing MaciASL to /Applications...\n"
+      unzip -qu $gMaciASLFile
+      mv "$gDirectory/MaciASL.app" /Applications
+      rm $gMaciASLFile
+      printf " \n"
+      printf "MaciASL has been installed!\n"
+      printf " \n"
   fi
 
   if [ ! -d "$HOME/Documents/iasl.git" ];
     then
       printf "*—-ERROR—-* IASL isn't installed in the $HOME/Documents!\n"
       printf " \n"
-      printf "Attempting to download from Rehabman's Bitbucket...\n"
-      exit 0;
-      # if [[ $? -ne 0 ]];
-      #   then
-      #     printf ' \n'
-      #     printf 'ERROR! Make sure your network connection is active and/or make sure you have already installed Xcode from the App store!\n'
-      #     exit 1
-      #   fi
+      printf "Attempting to download IASL from Rehabman's Github...\n"
+      cd "$gDirectory"
+      git clone $gRehabmanIASL iasl.git
+      if [[ $? -ne 0 ]];
+        then
+          printf ' \n'
+          printf 'ERROR! Make sure your network connection is active and/or make sure you have already installed Xcode from the App store!\n'
+          exit 1
+      fi
+      cd iasl.git
+      make
+      make install
+      cp /usr/bin/iasl /Applications/MaciASL.app/Contents/MacOS/iasl61
+    else
+      echo 'IASL is already installed!' > /dev/null 2>&1
   fi
 }
 
@@ -726,7 +746,7 @@ function main()
   clear
   greet
   _getSIPStat
-#  _checkIasl
+  _checkPreInstalled
   _printHeader
   _compileSSDT
 }
