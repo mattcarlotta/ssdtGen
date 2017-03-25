@@ -5,7 +5,7 @@
 # Version 0.0.1beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
-#     - ssdtGen is an automated bash script that attempts to build and 
+#     - ssdtGen is an automated bash script that attempts to build and
 #        compile SSDTs for X99 systems running Mac OS!
 #     - Simply run the commands in the readme to download and execute the
 #        ssdtGen.sh file from your Desktop.
@@ -183,7 +183,7 @@ function _checkPreInstalled()
 
   if [ ! -d "$HOME/Documents/iasl.git" ];
     then
-      printf "*—-ERROR—-* IASL isn't installed in the $HOME/Documents!\n"
+      printf "*—-ERROR—-* IASL isn't installed in the $HOME/Documents directory!\n"
       printf " \n"
       printf "Attempting to download IASL from Rehabman's Github...\n"
       cd "$gDirectory"
