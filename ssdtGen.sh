@@ -298,7 +298,7 @@ function _findDeviceProp()
 ##==============================================================================##
 function _setGPUDevice_Status()
 {
-  D0XX=$(ioreg -p IODeviceTree -n ${PCISLOT} -r | grep D0 | sed -e 's/ *["+|=<a-z>:/_@-]//g; s/^ *//g; s/(.{4}).{0}//g')
+  D0XX=$(ioreg -p IODeviceTree -n ${PCISLOT} -r | grep D0 | sed -e 's/ *["+|=<a-z>:/_@-]//g; s/^ *//g')
   D0XX=${D0XX:0:4}
   _checkDevice_Prop "${D0XX}" "$PCISLOT" "D0XX device"
 
