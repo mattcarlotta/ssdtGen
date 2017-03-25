@@ -25,19 +25,18 @@ gMaciASL="$HOME/Applications/MaciASL.app"
 #IASL compiler directory
 gIasl="$HOME/Documents/iasl.git"
 
-#MaciASL download directory
+#MaciASL and IASL download directories
 gRehabmanMaciASL="https://bitbucket.org/RehabMan/os-x-maciasl-patchmatic/downloads/RehabMan-MaciASL-2017-0117.zip"
 gRehabmanIASL="https://github.com/RehabMan/Intel-iasl.git"
 
+#MaciASL file needed to be unzipped
 gMaciASLFile="RehabMan-MaciASL-2017-0117.zip"
 
+# User's Document directory
 gDirectory="$HOME/Documents"
 
 #Count to cycle thru arrays
 gCount=0
-
-# _DSM LEqual (0) or LNot (1) switches
-gDSM=0
 
 #SSDT Table-ID array
 gTableID=(
@@ -68,6 +67,7 @@ gTableLength=(
 [9]="0x0000016F (367)"
 [10]="0x000000B0 (176)"
 )
+
 #SSDT Table Checksum array
 gTableChecksum=(
 [0]='0xBC'
@@ -133,7 +133,7 @@ function _getSIPStat()
 }
 
 #===============================================================================##
-## CHECK IASL IS INSTALLED #
+## CHECK MACIASL AND IASL ARE INSTALLED #
 ##==============================================================================##
 function _checkPreInstalled()
 {
@@ -187,7 +187,7 @@ function _checkPreInstalled()
 #===============================================================================##
 ## CHECK DEVICE PROP IS NOT EMPTY #
 ##==============================================================================##
-function _testVariable()
+function _checkDevice_Prop()
 {
   SSDT_PROP=$1
   SSDT_DEVICE=$2
@@ -266,7 +266,7 @@ function _getDevice_BuiltIn()
   SSDT_NAME=$1
 
   echo ''                                                                                 >> "$gSSDT"
-  echo '                "built-in",'                                             >> "$gSSDT"
+  echo '                "built-in",'                                                      >> "$gSSDT"
   echo '                Buffer()'                                                         >> "$gSSDT"
   echo '                {'                                                                >> "$gSSDT"
   echo '                    0x00'                                                         >> "$gSSDT"
@@ -364,7 +364,7 @@ function _getDevice_SubSysVendor_ID()
 {
   key='subsystem-vendor-id'
   SSDT_SSV_ID=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/subsystemvendorid//g')
-  _testVariable "${SSDT_SSV_ID}" "$device" "$key"
+  _checkDevice_Prop "${SSDT_SSV_ID}" "$device" "$key"
 
   echo ''                                                                                 >> "$gSSDT"
   echo '                "subsystem-vendor-id",'                                           >> "$gSSDT"
@@ -381,7 +381,7 @@ function _getDevice_SubSys_ID()
 {
   key='subsystem-id'
   SSDT_SUBSYS_ID=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/subsystemid//g')
-  _testVariable "${SSDT_SUBSYS_ID}" "$device" "$key"
+  _checkDevice_Prop "${SSDT_SUBSYS_ID}" "$device" "$key"
 
   echo ''                                                                                 >> "$gSSDT"
   echo '                "subsystem-id",'                                                  >> "$gSSDT"
@@ -398,7 +398,7 @@ function _getDevice_ID()
 {
   key='device-id'
   SSDT_DEVID=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/deviceid//g')
-  _testVariable "${SSDT_DEVID}" "$device" "$key"
+  _checkDevice_Prop "${SSDT_DEVID}" "$device" "$key"
 
   echo ''                                                                                 >> "$gSSDT"
   echo '                "device-id",'                                                     >> "$gSSDT"
@@ -415,7 +415,7 @@ function _getDevice_CompatibleID()
 {
   key='compatible'
   SSDT_COMPAT=$(ioreg -p IODeviceTree -n "$device" -k $key | grep $key |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/compatible//g')
-  _testVariable "${SSDT_COMPAT}" "$device" "$key"
+  _checkDevice_Prop "${SSDT_COMPAT}" "$device" "$key"
 
   echo ''                                                                                 >> "$gSSDT"
   echo '                "compatible",'                                                    >> "$gSSDT"
@@ -483,11 +483,11 @@ function _getWindows_OSI()
   echo '            //"Windows 2001.1 SP1",   // Windows Server 2003 SP1'                 >> "$gSSDT"
   echo '            "Windows 2006",           // Windows Vista'                           >> "$gSSDT"
   echo '            "Windows 2006 SP1",       // Windows Vista SP1'                       >> "$gSSDT"
-  echo '            //"Windows 2006.1",      // Windows Server 2008'                     >> "$gSSDT"
+  echo '            //"Windows 2006.1",       // Windows Server 2008'                     >> "$gSSDT"
   echo '            "Windows 2009",           // Windows 7/Windows Server 2008 R2'        >> "$gSSDT"
   echo '            "Windows 2012",           // Windows 8/Windows Server 2012'           >> "$gSSDT"
-  echo '            //"Windows 2013",           // Windows 8.1/Windows Server 2012 R2'    >> "$gSSDT"
-  echo '            //"Windows 2015",           // Windows 10/Windows Server TP'          >> "$gSSDT"
+  echo '            //"Windows 2013",         // Windows 8.1/Windows Server 2012 R2'      >> "$gSSDT"
+  echo '            //"Windows 2015",         // Windows 10/Windows Server TP'            >> "$gSSDT"
   echo '        }, Local0)'                                                               >> "$gSSDT"
   echo '       Return (Ones != Match(Local0, MEQ, Arg0, MTR, 0, 0))'                      >> "$gSSDT"
   echo '    }'                                                                            >> "$gSSDT"
