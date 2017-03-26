@@ -46,10 +46,12 @@ gIasl="$HOME/Documents/iasl.git"
 
 #MaciASL and IASL download directories
 gRehabmanMaciASL="https://bitbucket.org/RehabMan/os-x-maciasl-patchmatic/downloads/RehabMan-MaciASL-2017-0117.zip"
-gRehabmanIASL="https://github.com/RehabMan/Intel-iasl.git"
+#gRehabmanIASL="https://github.com/RehabMan/Intel-iasl.git"
+gRehabmanIASL="https://github.com/RehabMan/Intel-iasl/archive/master.zip"
 
-#MaciASL file needed to be unzipped
+#MaciASL and IASL files needed to be unzipped
 gMaciASLFile="RehabMan-MaciASL-2017-0117.zip"
+gIASLFile="master.zip"
 
 # User's Document directory
 gDirectory="$HOME/Documents"
@@ -187,13 +189,16 @@ function _checkPreInstalled()
       printf " \n"
       printf "Attempting to download IASL from Rehabman's Github...\n"
       cd "$gDirectory"
-      git clone $gRehabmanIASL iasl.git
+      curl --silent -O -L https://github.com/RehabMan/Intel-iasl/archive/master.zip
       if [[ $? -ne 0 ]];
         then
           printf ' \n'
           printf 'ERROR! Make sure your network connection is active and/or make sure you have already installed Xcode from the App store!\n'
           exit 1
       fi
+      unzip -qu $gIASLFile
+      mv Intel-iasl-master/ iasl.git
+      rm $gIASLFile
       cd iasl.git
       make
       make install
