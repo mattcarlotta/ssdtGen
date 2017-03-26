@@ -142,7 +142,7 @@ function _getSIPStat()
       exit 1
       ;;
 
-    *"Kext Signing: enabled"* )
+    *"Filesystem Protections: enabled"* )
       printf 'ERROR! S.I.P. is partially disabled, but file system protection is still enabled, aborting...\n'
       printf 'Please completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n'
       exit 1
