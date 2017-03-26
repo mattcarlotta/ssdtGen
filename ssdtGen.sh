@@ -188,7 +188,6 @@ function _checkPreInstalled()
       printf "MaciASL has been installed!\n"
       printf " \n"
   fi
-  exit 0;
 }
 
 #===============================================================================##
