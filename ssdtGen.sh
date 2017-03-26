@@ -41,13 +41,19 @@ gUSER=$(stat -f%Su /dev/console)
 
 gMaciASL="$HOME/Applications/MaciASL.app"
 
-#IASL compiler directory
-gIasl="$HOME/Documents/iasl.git"
+#IASL root compiler directory
+gIaslRootDir="/usr/bin/iasl"
 
+#IASL local compiler directory
+gIaslLocalDir="/usr/local/bin/iasl"
+
+gUsrLocalDir="/usr/local/bin"
+
+gIaslGithub="https://raw.githubusercontent.com/mattcarlotta/ssdtGen/master/tools/iasl"
 #MaciASL and IASL download directories
-gRehabmanMaciASL="https://bitbucket.org/RehabMan/os-x-maciasl-patchmatic/downloads/RehabMan-MaciASL-2017-0117.zip"
+#gRehabmanMaciASL="https://bitbucket.org/RehabMan/os-x-maciasl-patchmatic/downloads/RehabMan-MaciASL-2017-0117.zip"
 #gRehabmanIASL="https://github.com/RehabMan/Intel-iasl.git"
-gRehabmanIASL="https://github.com/RehabMan/Intel-iasl/archive/master.zip"
+#gRehabmanIASL="https://github.com/RehabMan/Intel-iasl/archive/master.zip"
 
 #MaciASL and IASL files needed to be unzipped
 gMaciASLFile="RehabMan-MaciASL-2017-0117.zip"
@@ -137,15 +143,13 @@ function _getSIPStat()
 {
   case "$(/usr/bin/csrutil status)" in
     "System Integrity Protection status: enabled." )
-      printf 'ERROR! S.I.P is enabled, aborting...\n'
-      printf 'Please disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n'
-      exit 1
+      printf '*—-WARNING--*! S.I.P is enabled...\n'
+      printf 'It/s recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n\n'
       ;;
 
     *"Filesystem Protections: enabled"* )
-      printf 'ERROR! S.I.P. is partially disabled, but file system protection is still enabled, aborting...\n'
-      printf 'Please completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n'
-      exit 1
+      printf '*—-WARNING--*! S.I.P. is partially disabled, but file system protection is still enabled...\n'
+      printf 'It/s recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n'
       ;;
 
     * )
@@ -158,57 +162,33 @@ function _getSIPStat()
 ##==============================================================================##
 function _checkPreInstalled()
 {
-  if [ -x "/Applications/MaciASL.app" ];
+  if [ -f "$gIaslRootDir" ] || [ -f "$gIaslLocalDir" ];
     then
-      echo 'MaciASL is already installed!' > /dev/null 2>&1
+      echo 'IASL64 is already installed!' > /dev/null 2>&1
     else
-      printf "*—-ERROR—-* MaciASL isn't installed in the $HOME/Applications directory!\n"
+      printf "*—-ERROR—-* IASL64 isn't installed in the either $gIaslRootDir nor your $gIaslLocalDir directory!\n"
       printf " \n"
-      printf "Attempting to download MaciASL from Rehabman's Bitbucket...\n"
-      cd "$gDirectory"
-      curl --silent -O -L $gRehabmanMaciASL
+      printf "Attempting to download IASL from Github...\n"
+      if [ ! -d "$gUsrLocalDir" ];
+        then
+          echo "$gUsrLocalDir doesn't exist. Creating directory!"
+          mkdir -p $gUsrLocalDir
+        else
+          echo "$gUsrLocalDir already exists" > /dev/null 2>&1
+      fi
+      curl -o $gIaslLocalDir $gIaslGithub
       if [[ $? -ne 0 ]];
         then
           printf ' \n'
-          printf 'ERROR! Make sure your network connection is active and/or make sure you have already installed Xcode from the App store!\n'
+          printf 'ERROR! Make sure your network connection is active!\n'
           exit 1
       fi
-      printf " \n"
-      printf "Installing MaciASL to /Applications...\n"
-      unzip -qu $gMaciASLFile
-      mv "$gDirectory/MaciASL.app" /Applications
-      rm $gMaciASLFile
+      chmod +x $gIaslLocalDir
       printf " \n"
       printf "MaciASL has been installed!\n"
       printf " \n"
   fi
-
-  if [ ! -d "$HOME/Documents/iasl.git" ];
-    then
-      printf "*—-ERROR—-* IASL isn't installed in the $HOME/Documents directory!\n"
-      printf " \n"
-      printf "Attempting to download IASL from Rehabman's Github...\n"
-      cd "$gDirectory"
-      curl --silent -O -L $gRehabmanIASL
-      if [[ $? -ne 0 ]];
-        then
-          printf ' \n'
-          printf 'ERROR! Make sure your network connection is active and/or make sure you have already installed Xcode from the App store!\n'
-          exit 1
-      fi
-      unzip -qu $gIASLFile
-      mv Intel-iasl-master/ iasl.git
-      rm $gIASLFile
-      cd iasl.git
-      make
-      make install
-      cp /usr/bin/iasl /Applications/MaciASL.app/Contents/MacOS/iasl61
-      printf " \n"
-      printf "IASL has been installed!\n"
-      printf " \n"
-    else
-      echo 'IASL is already installed!' > /dev/null 2>&1
-  fi
+  exit 0;
 }
 
 #===============================================================================##
