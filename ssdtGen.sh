@@ -189,7 +189,7 @@ function _checkPreInstalled()
       printf " \n"
       printf "Attempting to download IASL from Rehabman's Github...\n"
       cd "$gDirectory"
-      curl --silent -O -L https://github.com/RehabMan/Intel-iasl/archive/master.zip
+      curl --silent -O -L $gRehabmanIASL
       if [[ $? -ne 0 ]];
         then
           printf ' \n'
