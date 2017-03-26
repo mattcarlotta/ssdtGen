@@ -7,7 +7,7 @@
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
 #        compile SSDTs for X99 systems running Mac OS!
-#     - Simply run the commands in the readme to download and execute the
+#     - Simply run the commands in the README to download and execute the
 #        ssdtGen.sh file from your Desktop.
 #
 #
@@ -198,6 +198,9 @@ function _checkPreInstalled()
       make
       make install
       cp /usr/bin/iasl /Applications/MaciASL.app/Contents/MacOS/iasl61
+      printf " \n"
+      printf "IASL has been installed!\n"
+      printf " \n"
     else
       echo 'IASL is already installed!' > /dev/null 2>&1
   fi
@@ -215,7 +218,7 @@ function _checkDevice_Prop()
   if [ -z "$SSDT_VALUE" ]
     then
       echo ''
-      echo "*—-ERROR—-* There was a problem locating $SSDT_DEVICE's $SSDT_PROP! Please send an IORegistry dump and a report of this error!"
+      echo "*—-ERROR—-* There was a problem locating $SSDT_DEVICE's $SSDT_PROP! Please send an IORegistry dump and an error report!"
       echo ''
       _clean_up
   fi
@@ -410,7 +413,7 @@ function _findAUDIO()
  }
 
  #===============================================================================##
- ## GRAB SMBS DEVICE  #
+ ## FIND SMBS DEVICE  #
  ##==============================================================================##
  function _findDevice_Address()
  {

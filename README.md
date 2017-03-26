@@ -28,7 +28,7 @@ Lastly, use this command to run the script:
 DSDT ACPI tables must be vanilla(1). If any devices are renamed, forget about it. Won't work.
 
 * This script (as of now) only supports x99 systems.
-* You will need to already have Xcode installed.
+* You will need to already have <a href="https://itunes.apple.com/us/app/xcode/id497799835?mt=12>"Xcode</a> installed.
 * This script will also install MaciASL and IASL if they're missing (so, don't panic if you see a bunch of
 text flying by as it attempts to install both programs)
 * S.I.P. must be disabled for IASL to compile to usr/bin
