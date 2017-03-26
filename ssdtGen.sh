@@ -39,28 +39,17 @@ gSSDTID=""
 #Currently logged in user
 gUSER=$(stat -f%Su /dev/console)
 
-gMaciASL="$HOME/Applications/MaciASL.app"
-
 #IASL root compiler directory
 gIaslRootDir="/usr/bin/iasl"
+
+#IASL local  directory
+gUsrLocalDir="/usr/local/bin"
 
 #IASL local compiler directory
 gIaslLocalDir="/usr/local/bin/iasl"
 
-gUsrLocalDir="/usr/local/bin"
-
+# Github IASL download
 gIaslGithub="https://raw.githubusercontent.com/mattcarlotta/ssdtGen/master/tools/iasl"
-#MaciASL and IASL download directories
-#gRehabmanMaciASL="https://bitbucket.org/RehabMan/os-x-maciasl-patchmatic/downloads/RehabMan-MaciASL-2017-0117.zip"
-#gRehabmanIASL="https://github.com/RehabMan/Intel-iasl.git"
-#gRehabmanIASL="https://github.com/RehabMan/Intel-iasl/archive/master.zip"
-
-#MaciASL and IASL files needed to be unzipped
-gMaciASLFile="RehabMan-MaciASL-2017-0117.zip"
-gIASLFile="master.zip"
-
-# User's Document directory
-gDirectory="$HOME/Documents"
 
 #Count to cycle thru arrays
 gCount=0
@@ -261,6 +250,7 @@ function _findDeviceProp()
 {
   PROP=$1
   SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@]//g; s/'$PROP'//g')
+
   _checkDevice_Prop "${SSDT_VALUE}" "$DEVICE" "$PROP"
 
   echo ''                                                                                 >> "$gSSDT"
@@ -287,6 +277,7 @@ function _setGPUDevice_Status()
 {
   D0XX=$(ioreg -p IODeviceTree -n ${PCISLOT} -r | grep D0 | sed -e 's/ *["+|=<a-z>:/_@-]//g; s/^ *//g')
   D0XX=${D0XX:0:4}
+
   _checkDevice_Prop "${D0XX}" "$PCISLOT" "D0XX device"
 
   echo ''                                                                                 >> "$gSSDT"
@@ -359,7 +350,7 @@ function _findAUDIO()
   PCISLOT=${GPUPATH:0:4} #BR3A
   DEVICE=${GPUPATH:4:4} #H000/GFX1
   GPU=$DEVICE
-  echo $GPUPATH
+
   _checkDevice_Prop "${GPUPATH}" "$SSDT" "$PROP"
 
   echo '    Device ('${gSSDTPath}'.'${PCISLOT}'.'${SSDT}')'                               >> "$gSSDT"
