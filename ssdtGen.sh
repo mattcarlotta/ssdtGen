@@ -151,7 +151,7 @@ function display_instructions()
   printf "       -${bold}GLAN${normal}: Adds suport for an Intel ethernet controller\n"
   printf "       -${bold}HECI => IMEI${normal}: Intel Managment Engine Interface that, in general, adds\n"
   printf "          support for various tasks while the system is booting, running or sleeping \n"
-  printf "       -${bold}LPC0${normal}: Adds support to AppleLPC for CPU managemnt\n"
+  printf "       -${bold}LPC0${normal}: Adds support to AppleLPC for CPU management\n"
   printf "       - ${bold}SAT1${normal}: Adds support for the PCH SATA controller for SATA devices\n"
   printf "          via Legacy or AHCI mode (up to 6Gb/s transfers)\n"
   printf "       - ${bold}SMBS${normal}: Adds support for a SMBus controller that allows communication\n"
@@ -189,12 +189,12 @@ function _getSIPStat()
   case "$(/usr/bin/csrutil status)" in
     "System Integrity Protection status: enabled." )
       printf '*—-WARNING--*! S.I.P is enabled...\n'
-      printf 'It/s recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n\n'
+      printf "It's recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n"
       ;;
 
     *"Filesystem Protections: enabled"* )
       printf '*—-WARNING--*! S.I.P. is partially disabled, but file system protection is still enabled...\n'
-      printf 'It/s recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n'
+      printf "It's recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n"
       ;;
 
     * )
