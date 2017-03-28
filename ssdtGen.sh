@@ -718,7 +718,7 @@ function _compileSSDT
 function _user_choices()
 {
   echo ''
-  read -p "Please select an option? (build/debug/help/exit)? " choice
+  read -p "Please select an option: (build/debug/help/exit)? " choice
     case "$choice" in
       # call delete caches
       build|BUILD )
