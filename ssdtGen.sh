@@ -160,7 +160,7 @@ function display_instructions()
   printf "       - ${bold}XOSI${normal}: Adds Windows simulated support for DSDT OSI_ methods\n"
   printf "\n"
   printf "To debug the script, input ${bold}debug${normal} or ${bold}DEBUG${normal}:\n"
-  printf "       -Will automatically generate an debug ouput.txt file to the Desktop\n"
+  printf "       -Will automatically generate a debug ouput.txt file to the Desktop\n"
   printf "\n"
   read -p "Would you like to reload the script now? (y/n)? " choice
     case "$choice" in
