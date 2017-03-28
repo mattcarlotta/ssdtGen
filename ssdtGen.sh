@@ -157,7 +157,7 @@ function display_instructions()
   printf "          between separate hardware devices and adds I2C support (temperate, fan, voltage,\n"
   printf "          battery sensors)\n"
   printf "       - ${bold}XHC${normal}: Adds power options for the USB xHC Host Controller\n"
-  printf "       - ${bold}XOSI${normal}: Adds Windows simiulated support for DSDT OSI_ methods\n"
+  printf "       - ${bold}XOSI${normal}: Adds Windows simulated support for DSDT OSI_ methods\n"
   printf "\n"
   printf "To debug the script, input ${bold}debug${normal} or ${bold}DEBUG${normal}:\n"
   printf "       -Will automatically generate an debug ouput.txt file to the Desktop\n"
