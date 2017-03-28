@@ -146,17 +146,18 @@ function display_instructions()
   printf "          for MS SMBus transactions\n"
   printf "       - ${bold}EVSS${normal}: Adds support for a third PCH sSata controller for IDE, AHCI,\n"
   printf "          RAID storage drives (up to 6Gb/s transfers) \n"
-  printf "       -${bold}GFX1/HDAU${normal}: Adds suport for a single Nvidia graphics card and\n"
-  printf "          adds HDMI audio support for the card \n"
-  printf "       -${bold}GLAN${normal}: Adds suport for an Intel ethernet controller\n"
-  printf "       -${bold}HECI => IMEI${normal}: Intel Managment Engine Interface that, in general, adds\n"
-  printf "          support for various tasks while the system is booting, running or sleeping \n"
-  printf "       -${bold}LPC0${normal}: Adds support to AppleLPC for CPU management\n"
+  printf "       - ${bold}GFX1/HDAU${normal}: Adds suport for a single Nvidia graphics card and\n"
+  printf "          adds HDMI audio support for the card as well \n"
+  printf "       - ${bold}GLAN${normal}: Adds support for an Intel ethernet controller\n"
+  printf "       - ${bold}HECI => IMEI${normal}: Intel Management Engine Interface that, in general,\n"
+  printf "          adds support for various tasks while the system is booting, running \n"
+  printf "          or sleeping \n"
+  printf "       - ${bold}LPC0${normal}: Adds support to AppleLPC for CPU management\n"
   printf "       - ${bold}SAT1${normal}: Adds support for the PCH SATA controller for SATA devices\n"
   printf "          via Legacy or AHCI mode (up to 6Gb/s transfers)\n"
   printf "       - ${bold}SMBS${normal}: Adds support for a SMBus controller that allows communication\n"
-  printf "          between separate hardware devices and adds I2C support (temperate, fan, voltage,\n"
-  printf "          battery sensors)\n"
+  printf "          between separate hardware devices and adds I2C support (temperature,\n"
+  printf "          fan, voltage, and battery sensors)\n"
   printf "       - ${bold}XHC${normal}: Adds power options for the USB xHC Host Controller\n"
   printf "       - ${bold}XOSI${normal}: Adds Windows simulated support for DSDT OSI_ methods\n"
   printf "\n"
@@ -173,7 +174,7 @@ function display_instructions()
     _clean_up
     ;;
     * )
-    printf "${bold}*—-ERROR—-* That was not a valid option!${normal}"
+    printf "${bold}*—-ERROR—-*${normal} That was not a valid option!"
     printf "\n"
     clean_up
     ;;
@@ -188,13 +189,13 @@ function _getSIPStat()
 {
   case "$(/usr/bin/csrutil status)" in
     "System Integrity Protection status: enabled." )
-      printf '*—-WARNING--*! S.I.P is enabled...\n'
-      printf "It's recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n"
+      printf "${bold}*—-WARNING--*${normal} S.I.P is enabled...\n"
+      printf "Its recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n"
       ;;
 
     *"Filesystem Protections: enabled"* )
-      printf '*—-WARNING--*! S.I.P. is partially disabled, but file system protection is still enabled...\n'
-      printf "It's recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n"
+      printf "${bold}*—-WARNING--*${normal} S.I.P. is partially disabled, but file system protection is still enabled...\n"
+      printf "It/s recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n"
       ;;
 
     * )
@@ -211,7 +212,7 @@ function _checkPreInstalled()
     then
       echo 'IASL64 is already installed!' > /dev/null 2>&1
     else
-      printf "${bold}*—-ERROR—-* IASL64 isn't installed in the either $gIaslRootDir nor your $gIaslLocalDir directory!${normal}\n"
+      printf "${bold}*—-ERROR—-*${normal} IASL64 isn't installed in the either $gIaslRootDir nor your $gIaslLocalDir directory!\n"
       printf " \n"
       printf "Attempting to download IASL from Github...\n"
       if [ ! -d "$gUsrLocalDir" ];
@@ -225,7 +226,7 @@ function _checkPreInstalled()
       if [[ $? -ne 0 ]];
         then
           printf ' \n'
-          printf "${bold}*—-ERROR—-* Make sure your network connection is active!${normal}\n"
+          printf "${bold}*—-ERROR—-*${normal} Make sure your network connection is active!\n"
           exit 1
       fi
       chmod +x $gIaslLocalDir
@@ -748,7 +749,7 @@ function _user_choices()
       # oops - user made a mistake, reload script
       * )
       printf "\n"
-      printf "${bold}*—-ERROR—-* That was not a valid option!${normal}"
+      printf "${bold}*—-ERROR—-*${normal} That was not a valid option!"
       printf "\n"
       display_instructions
       ;;
@@ -774,10 +775,13 @@ function _checkBoard
   moboID=$(ioreg -lw0 -p IODeviceTree | awk '/OEMBoard/ {print $4}' | tr -d '<"">')
   moboID=${moboID:0:3}
 
-  if [[ "$moboID" != 'X99' ]];
+  if [[ "$moboID" != "X99" ]];
     then
     printf "\n"
-    printf "${bold}*—-ERROR—-* This script only supports X99 motherboards at the moment!${normal}\n"
+    printf "${bold}*—-ERROR—-*${normal} This script only supports X99 motherboards at the moment!\n"
+    printf "\n"
+    sleep 1
+    printf "Script was aborted!\033[0K\r\n"
     printf "\n"
     exit 0
   fi
