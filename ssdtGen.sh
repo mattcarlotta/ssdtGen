@@ -777,7 +777,7 @@ function _checkBoard
   if [[ "$moboID" != 'X99' ]];
     then
     printf "\n"
-    printf "${bold}*—-ERROR—-* This script only supports X99 motherboards at the moment!${normal}"
+    printf "${bold}*—-ERROR—-* This script only supports X99 motherboards at the moment!${normal}\n"
     printf "\n"
     exit 0
   fi
