@@ -21,6 +21,8 @@
 ## GLOBAL VARIABLES #
 ##==============================================================================##
 
+dPath="$HOME/Desktop/debug_output.txt"
+
 # User's home dir
 gPath="$HOME/Desktop"
 
@@ -53,6 +55,12 @@ gIaslGithub="https://raw.githubusercontent.com/mattcarlotta/ssdtGen/master/tools
 
 #Count to cycle thru arrays
 gCount=0
+
+# Bold text
+bold=$(tput bold)
+
+# Normal text
+normal=$(tput sgr0)
 
 #SSDT Table-ID array
 gTableID=(
@@ -118,12 +126,59 @@ gTableChecksum=(
 function _clean_up()
 {
   printf "Cleaning up any left-overs..."
-  rm "${gPath}"/*.dsl
+  rm "${gPath}"/*.dsl 2> /dev/null
   sleep 1
   printf "Script was aborted!\033[0K\r\n"
   exit 1
   clear
 }
+
+#===============================================================================##
+## DISPLAY INSTRUCTIONS #
+##==============================================================================##
+function display_instructions()
+{
+  printf "\n"
+  printf "To build and compile SSDTS, input ${bold}build${normal} or ${bold}BUILD${normal}:\n"
+  printf "       - ${bold}ALZA => HDEF${normal}: Adds support for Realtek on-board sound\n"
+  printf "       - ${bold}EVMR => SPSR${normal}: Server Platform Service Rom functionality and support\n"
+  printf "          for MS SMBus transactions\n"
+  printf "       - ${bold}EVSS${normal}: Adds support for a third PCH sSata controller for IDE, AHCI,\n"
+  printf "          RAID storage drives (up to 6Gb/s transfers) \n"
+  printf "       -${bold}GFX1/HDAU${normal}: Adds suport for a single Nvidia graphics card and\n"
+  printf "          adds HDMI audio support for the card \n"
+  printf "       -${bold}GLAN${normal}: Adds suport for an Intel ethernet controller\n"
+  printf "       -${bold}HECI => IMEI${normal}: Intel Managment Engine Interface that, in general, adds\n"
+  printf "          support for various tasks while the system is booting, running or sleeping \n"
+  printf "       -${bold}LPC0${normal}: Adds support to AppleLPC for CPU managemnt\n"
+  printf "       - ${bold}SAT1${normal}: Adds support for the PCH SATA controller for SATA devices\n"
+  printf "          via Legacy or AHCI mode (up to 6Gb/s transfers)\n"
+  printf "       - ${bold}SMBS${normal}: Adds support for a SMBus controller that allows communication\n"
+  printf "          between separate hardware devices and adds I2C support (temperate, fan, voltage,\n"
+  printf "          battery sensors)\n"
+  printf "       - ${bold}XHC${normal}: Adds power options for the USB xHC Host Controller\n"
+  printf "       - ${bold}XOSI${normal}: Adds Windows simiulated support for DSDT OSI_ methods\n"
+  printf "\n"
+  printf "To debug the script, input ${bold}debug${normal} or ${bold}DEBUG${normal}:\n"
+  printf "       -Will automatically generate an debug ouput.txt file to the Desktop\n"
+  printf "\n"
+  read -p "Would you like to reload the script now? (y/n)? " choice
+    case "$choice" in
+    y|Y )
+    main
+    ;;
+    n|N )
+    echo ''
+    _clean_up
+    ;;
+    * )
+    printf "${bold}*—-ERROR—-* That was not a valid option!${normal}"
+    printf "\n"
+    clean_up
+    ;;
+esac
+}
+
 
 #===============================================================================##
 ## CHECK SIP #
@@ -155,7 +210,7 @@ function _checkPreInstalled()
     then
       echo 'IASL64 is already installed!' > /dev/null 2>&1
     else
-      printf "*—-ERROR—-* IASL64 isn't installed in the either $gIaslRootDir nor your $gIaslLocalDir directory!\n"
+      printf "${bold}*—-ERROR—-* IASL64 isn't installed in the either $gIaslRootDir nor your $gIaslLocalDir directory!${normal}\n"
       printf " \n"
       printf "Attempting to download IASL from Github...\n"
       if [ ! -d "$gUsrLocalDir" ];
@@ -169,7 +224,7 @@ function _checkPreInstalled()
       if [[ $? -ne 0 ]];
         then
           printf ' \n'
-          printf 'ERROR! Make sure your network connection is active!\n'
+          printf "${bold}*—-ERROR—-* Make sure your network connection is active!${normal}\n"
           exit 1
       fi
       chmod +x $gIaslLocalDir
@@ -191,7 +246,8 @@ function _checkDevice_Prop()
   if [ -z "$SSDT_VALUE" ]
     then
       echo ''
-      echo "*—-ERROR—-* There was a problem locating $SSDT_DEVICE's $SSDT_PROP! Please send an IORegistry dump and an error report!"
+      echo "${bold}*—-ERROR—-*${normal} There was a problem locating $SSDT_DEVICE's $SSDT_PROP!"
+      echo "Please run this script in debug mode to generate a debug text file."
       echo ''
       _clean_up
   fi
@@ -418,7 +474,7 @@ function _getExtDevice_Address()
 {
   DEVICE=$1
 
-  if [[ "$DEVICE" == 'XHC' ]];
+  if [[ "$DEVICE" == "XHC" ]];
     then
       local underscore="_"
   fi
@@ -453,7 +509,7 @@ function _buildSSDT()
 {
   SSDT=$1
 
-  if [[ "$SSDT" == 'ALZA' ]];
+  if [[ "$SSDT" == "ALZA" ]];
     then
       # ****need to switch HDEF to ALZA ****
       _getDevice_ACPI_Path $SSDT
@@ -656,15 +712,74 @@ function _compileSSDT
   fi
 }
 
+# #===============================================================================##
+# ## USER CHOOSES WHAT TO DO #
+# ##==============================================================================##
+function _user_choices()
+{
+  echo ''
+  read -p "Please select an option? (build/debug/help/exit)? " choice
+    case "$choice" in
+      # call delete caches
+      build|BUILD )
+      main true
+      exit 0
+      ;;
+      # call generate ids
+      debug|DEBUG )
+      set -x
+      main true 2>&1 | tee "$dPath"
+      ioreg >> "$dPath"
+      set +x
+      exit 0
+      ;;
+      # display help instructions
+      help|HELP )
+      display_instructions
+      ;;
+      # kill the script
+      exit|EXIT )
+      printf "\n"
+      printf "Script was aborted!\033[0K\r\n"
+      printf "\n"
+      exit 0
+      ;;
+      # oops - user made a mistake, reload script
+      * )
+      printf "\n"
+      printf "${bold}*—-ERROR—-* That was not a valid option!${normal}"
+      printf "\n"
+      display_instructions
+      ;;
+    esac
+}
+
 #===============================================================================##
 ## GREET USER #
 ##==============================================================================##
 function greet()
 {
-  printf '            ssdtGen Version 0.0.1.b - Copyright (c) 2017 by M.F.C.'
+  printf '            ssdtGen Version 0.0.3b - Copyright (c) 2017 by M.F.C.'
   printf  "\n%s" '--------------------------------------------------------------------------------'
   printf ' \n'
   sleep 0.25
+}
+
+#===============================================================================##
+## CHECK USER'S MOTHERBOARD #
+##==============================================================================##
+function _checkBoard
+{
+  moboID=$(ioreg -lw0 -p IODeviceTree | awk '/OEMBoard/ {print $4}' | tr -d '<"">')
+  moboID=${moboID:0:3}
+
+  if [[ "$moboID" != 'X99' ]];
+    then
+    printf "\n"
+    printf "${bold}*—-ERROR—-* This script only supports X99 motherboards at the moment!${normal}"
+    printf "\n"
+    exit 0
+  fi
 }
 
 #===============================================================================##
@@ -672,8 +787,15 @@ function greet()
 ##==============================================================================##
 function main()
 {
+  local userChosen=$1
+
   clear
   greet
+  _checkBoard
+  if [ -z "$userChosen" ];
+    then
+      _user_choices
+  fi
   _getSIPStat
   _checkPreInstalled
   _printHeader
@@ -688,6 +810,5 @@ if [[ `id -u` -ne 0 ]];
     sudo "$0"
   else
     main
+    exit 0
 fi
-
-exit 0

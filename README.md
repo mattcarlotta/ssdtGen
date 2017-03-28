@@ -1,4 +1,4 @@
-# ssdtGen 0.0.2beta
+# ssdtGen 0.0.3beta
 
 Introduction
 
@@ -19,6 +19,14 @@ chmod +x ~/Desktop/ssdtGen.sh
 Lastly, use this command to run the script:
 ```
 ~/Desktop/ssdtGen.sh
+```
+
+Commands:
+```
+build (will attempt to build SSDTs)
+debug (will generate a debug_output.txt file)
+help (will display instructions)
+exit (will exit the script)
 ```
 
 --------------------------------------------------------------------------------------------------------------
