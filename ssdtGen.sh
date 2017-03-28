@@ -21,6 +21,7 @@
 ## GLOBAL VARIABLES #
 ##==============================================================================##
 
+# Debug output path
 dPath="$HOME/Desktop/debug_output.txt"
 
 # User's home dir
