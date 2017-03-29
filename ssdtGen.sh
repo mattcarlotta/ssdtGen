@@ -2,7 +2,7 @@
 #
 # Script (ssdtGen.sh) to create SSDTs for Mac OS.
 #
-# Version 0.0.3beta - Copyright (c) 2017 by M.F.C.
+# Version 0.0.4beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
@@ -140,16 +140,19 @@ function _clean_up()
 function display_instructions()
 {
   printf "\n"
-  printf "To build and compile SSDTS, input ${bold}build${normal} or ${bold}BUILD${normal}:\n"
-  printf "       - ${bold}ALZA => HDEF${normal}: Adds support for Realtek on-board sound\n"
-  printf "       - ${bold}EVMR => SPSR${normal}: Server Platform Service Rom functionality and support\n"
+  printf "To build and compile all SSDTS, input ${bold}-ba${normal} or ${bold}-BA${normal}\n"
+  printf "\n"
+  printf "To build and compile one SSDT, input ${bold}-b NAME${normal} or ${bold}-BA NAME${normal}:\n"
+  printf "\n"
+  printf "       - ${bold}ALZA${normal}: Adds support for Realtek on-board sound\n"
+  printf "       - ${bold}EVMR${normal}: Server Platform Service Rom functionality and support\n"
   printf "          for MS SMBus transactions\n"
   printf "       - ${bold}EVSS${normal}: Adds support for a third PCH sSata controller for IDE, AHCI,\n"
   printf "          RAID storage drives (up to 6Gb/s transfers) \n"
-  printf "       - ${bold}GFX1/HDAU${normal}: Adds suport for a single Nvidia graphics card and\n"
+  printf "       - ${bold}GFX1${normal}: Adds suport for a single Nvidia graphics card and\n"
   printf "          adds HDMI audio support for the card as well \n"
   printf "       - ${bold}GLAN${normal}: Adds support for an Intel ethernet controller\n"
-  printf "       - ${bold}HECI => IMEI${normal}: Intel Management Engine Interface that, in general,\n"
+  printf "       - ${bold}HECI${normal}: Intel Management Engine Interface that, in general,\n"
   printf "          adds support for various tasks while the system is booting, running \n"
   printf "          or sleeping \n"
   printf "       - ${bold}LPC0${normal}: Adds support to AppleLPC for CPU management\n"
@@ -161,8 +164,9 @@ function display_instructions()
   printf "       - ${bold}XHC${normal}: Adds power options for the USB xHC Host Controller\n"
   printf "       - ${bold}XOSI${normal}: Adds Windows simulated support for DSDT OSI_ methods\n"
   printf "\n"
-  printf "To debug the script, input ${bold}debug${normal} or ${bold}DEBUG${normal}:\n"
-  printf "       -Will automatically generate a debug ouput.txt file to the Desktop\n"
+  printf "To debug the script, input ${bold}-d${normal} or ${bold}-D${normal}:\n"
+  printf "       - Will automatically attempt to build and compile all SSDTS while\n"
+  printf "          generating a debug ouput.txt file to the Desktop\n"
   printf "\n"
   read -p "Would you like to reload the script now? (y/n)? " choice
     case "$choice" in
@@ -251,7 +255,7 @@ function _checkDevice_Prop()
       echo "${bold}*—-ERROR—-*${normal} There was a problem locating $SSDT_DEVICE's $SSDT_PROP!"
       echo "Please run this script in debug mode to generate a debug text file."
       echo ''
-      _clean_up
+      #_clean_up
   fi
 }
 
@@ -514,7 +518,7 @@ function _buildSSDT()
   if [[ "$SSDT" == "ALZA" ]];
     then
       # ****need to switch HDEF to ALZA ****
-      _getDevice_ACPI_Path $SSDT
+      _getDevice_ACPI_Path HDEF
       _setDevice '"model"' '"Realtek Audio Controller"'
       _setDevice '"hda-gfx"' '"onboard-1"'
       _setDevice '"layout-id"' '0x01, 0x00, 0x00, 0x00'
@@ -662,9 +666,35 @@ function _buildSSDT()
   fi
 }
 
-#===============================================================================##
-## PRINT FILE HEADER #
-##==============================================================================##
+##===============================================================================##
+# COMPILE SSDT AND CLEAN UP #
+##===============================================================================##
+function _compileSSDT
+{
+  ((gCount++))
+  chown $gUSER $gSSDT
+  printf "${STYLE_BOLD}Compiling:${STYLE_RESET} ${gSSDTID}.dsl\n"
+  iasl -G "$gSSDT"
+  printf "${STYLE_BOLD}Removing:${STYLE_RESET} ${gSSDTID}.dsl\n"
+  printf  "\n%s" '--------------------------------------------------------------------------------'
+  printf '\n'
+  rm "$gSSDT"
+  if [ ! -z "$buildOne" ];
+    then
+      echo "User only wanted to build ${buildOne}" 2> /dev/null
+      exit 0
+  fi
+  if [[ $gCount -lt 11 ]];
+   then
+      echo 'Attempting to build all SSDTs...' 2> /dev/null
+     _printHeader
+  fi
+}
+
+
+##===============================================================================##
+# PRINT FILE HEADER #
+##===============================================================================##
 function _printHeader()
 {
   gSSDTID="SSDT-${gTableID[$gCount]}"
@@ -691,44 +721,56 @@ function _printHeader()
   echo 'DefinitionBlock ("", "SSDT", 1, "mfc88", "'${gTableID[$gCount]}'", 0x00000000)'   >> "$gSSDT"
   echo '{'                                                                                >> "$gSSDT"
   _buildSSDT ${gTableID[$gCount]}
-
+  _compileSSDT
 }
 
-# #===============================================================================##
-# ## COMPILE SSDT AND CLEAN UP #
-# ##==============================================================================##
-function _compileSSDT
+##===============================================================================##
+# CHECK USER CHOICES TO SSDT LIST #
+##===============================================================================##
+function _checkIfExists()
 {
-  ((gCount++))
-  chown $gUSER $gSSDT
-  printf "${STYLE_BOLD}Compiling:${STYLE_RESET} ${gSSDTID}.dsl\n"
-  iasl -G "$gSSDT"
-  printf "${STYLE_BOLD}Removing:${STYLE_RESET} ${gSSDTID}.dsl\n"
-  printf  "\n%s" '--------------------------------------------------------------------------------'
-  printf '\n'
-  rm "$gSSDT"
-  if [[ $gCount -lt 11 ]];
-   then
-     _printHeader
-     _compileSSDT
+  for((i=0;i<=10;i++))
+  do
+  if [[ "${buildOne}" == "${gTableID[$i]}" ]];
+    then
+    gCount=$i
+    _printHeader
+    exit 0
   fi
+  done
+
+  echo ''
+  echo "${bold}*—-ERROR—-*${normal} $buildOne is not a SSDT!"
+  echo "Please run this script in debug mode to generate a debug text file."
+  echo ''
+  exit 0
+
 }
 
-# #===============================================================================##
-# ## USER CHOOSES WHAT TO DO #
-# ##==============================================================================##
+##===============================================================================##
+# USER CHOOSES WHAT TO DO #
+##===============================================================================##
 function _user_choices()
 {
+  cr=`echo $'\n.'`
+  cr=${cr%.}
+
   echo ''
-  read -p "Please select an option: (build/debug/help/exit)? " choice
+  read -p "build all(${bold}-ba${normal}) | build a single SSDT (${bold}-b NAME${normal}) | debug(${bold}-d${normal}) | help(${bold}-h${normal}) | exit(${bold}-e${normal})? $cr" choice
     case "$choice" in
-      # call delete caches
-      build|BUILD )
+      # attempt to build all SSDTs
+      -ba|-BA )
       main true
       exit 0
       ;;
-      # call generate ids
-      debug|DEBUG )
+      # attempt to build one SSDT
+      -b* | -B*)
+      buildOne=${choice:3:5}
+       _checkIfExists
+       exit
+      ;;
+      # debug mode
+      -d|-D )
       set -x
       main true 2>&1 | tee "$dPath"
       ioreg >> "$dPath"
@@ -736,11 +778,11 @@ function _user_choices()
       exit 0
       ;;
       # display help instructions
-      help|HELP )
+      -h|-H )
       display_instructions
       ;;
       # kill the script
-      exit|EXIT )
+      -e|-E )
       printf "\n"
       printf "Script was aborted!\033[0K\r\n"
       printf "\n"
@@ -761,7 +803,7 @@ function _user_choices()
 ##==============================================================================##
 function greet()
 {
-  printf '            ssdtGen Version 0.0.3b - Copyright (c) 2017 by M.F.C.'
+  printf '            ssdtGen Version 0.0.4b - Copyright (c) 2017 by M.F.C.'
   printf  "\n%s" '--------------------------------------------------------------------------------'
   printf ' \n'
   sleep 0.25
@@ -804,7 +846,6 @@ function main()
   _getSIPStat
   _checkPreInstalled
   _printHeader
-  _compileSSDT
 }
 
 trap '{ _clean_up; exit 1; }' INT

@@ -1,4 +1,4 @@
-# ssdtGen 0.0.3beta
+# ssdtGen 0.0.4beta
 
 Introduction
 
@@ -23,10 +23,11 @@ Lastly, use this command to run the script:
 
 Commands:
 ```
-build (will attempt to build SSDTs)
-debug (will generate a debug_output.txt file)
-help (will display instructions)
-exit (will exit the script)
+-ba (will attempt to build all SSDTs)
+-b NAME (will attempt to build a single SSDT)
+-d (will attempt to build all SSDTS while generating a debug_output.txt file)
+-h (will display help instructions)
+-e (will exit the script)
 ```
 
 --------------------------------------------------------------------------------------------------------------
