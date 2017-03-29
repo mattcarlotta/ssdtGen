@@ -155,7 +155,8 @@ function display_instructions()
   printf "       - ${bold}HECI${normal}: Intel Management Engine Interface that, in general,\n"
   printf "          adds support for various tasks while the system is booting, running \n"
   printf "          or sleeping \n"
-  printf "       - ${bold}LPC0${normal}: Adds support to AppleLPC for CPU management\n"
+  printf "       - ${bold}LPC0${normal}: Adds support to AppleLPC.kext for Low Pin Count devices\n"
+    printf "          to connect to the CPU\n"
   printf "       - ${bold}SAT1${normal}: Adds support for the PCH SATA controller for SATA devices\n"
   printf "          via Legacy or AHCI mode (up to 6Gb/s transfers)\n"
   printf "       - ${bold}SMBS${normal}: Adds support for a SMBus controller that allows communication\n"
@@ -168,21 +169,25 @@ function display_instructions()
   printf "       - Will automatically attempt to build and compile all SSDTS while\n"
   printf "          generating a debug ouput.txt file to the Desktop\n"
   printf "\n"
-  read -p "Would you like to reload the script now? (y/n)? " choice
+  while true; do
+    read -p "Would you like to reload the script now? (y/n)? " choice
     case "$choice" in
-    y|Y )
-    main
-    ;;
-    n|N )
-    echo ''
-    _clean_up
-    ;;
-    * )
-    printf "${bold}*—-ERROR—-*${normal} That was not a valid option!"
-    printf "\n"
-    clean_up
-    ;;
-esac
+      y|Y )
+        main
+        break  # supported key, break;
+      ;;
+
+      n|N )
+        echo ''
+        _clean_up
+        break  # supported key, break;
+      ;;
+
+      * )
+        printf "${bold}*—-ERROR—-*${normal} That was not a valid option, please try again!\n"
+      ;;
+    esac
+done
 }
 
 
