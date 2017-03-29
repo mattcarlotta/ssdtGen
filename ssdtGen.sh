@@ -681,12 +681,12 @@ function _compileSSDT
   rm "$gSSDT"
   if [ ! -z "$buildOne" ];
     then
-      echo "User only wanted to build ${buildOne}" 2> /dev/null
+      echo "User only wanted to build ${buildOne}" > /dev/null 2>&1
       exit 0
   fi
   if [[ $gCount -lt 11 ]];
    then
-      echo 'Attempting to build all SSDTs...' 2> /dev/null
+      echo 'Attempting to build all SSDTs...' > /dev/null 2>&1
      _printHeader
   fi
 }
@@ -741,10 +741,7 @@ function _checkIfExists()
 
   echo ''
   echo "${bold}*—-ERROR—-*${normal} $buildOne is not a SSDT!"
-  echo "Please run this script in debug mode to generate a debug text file."
-  echo ''
-  exit 0
-
+  display_instructions
 }
 
 ##===============================================================================##
