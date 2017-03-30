@@ -271,7 +271,15 @@ function _close_Brackets()
 {
   MB=$1
 
+  #if [[ "$addDTGP" == true]];
+    #then
+    #echo '            }, Local0)'                                                        >> "$gSSDT"
+    #echo '           DTGP (Arg0, Arg1, Arg2, Arg3, RefOf (Local0))'                      >> "$gSSDT"
+    #echo '           Return (Local0)'                                                    >> "$gSSDT"
+  #else
   echo '            })'                                                                   >> "$gSSDT"
+  #fi
+
   echo '        }'                                                                        >> "$gSSDT"
   echo '    }'                                                                            >> "$gSSDT"
 
@@ -387,7 +395,12 @@ function _getDSM()
   echo '                })'                                                               >> "$gSSDT"
   echo '            }'                                                                    >> "$gSSDT"
   echo ''                                                                                 >> "$gSSDT"
+  #if [[ "$addDTGP" == true]];
+    #then
+    #echo '            Store (Package ()'                                                 >> "$gSSDT"
+    #else
   echo '            Return (Package ()'                                                   >> "$gSSDT"
+  #fi
   echo '            {'                                                                    >> "$gSSDT"
 }
 
@@ -523,7 +536,7 @@ function _buildSSDT()
   if [[ "$SSDT" == "ALZA" ]];
     then
       # ****need to switch HDEF to ALZA ****
-      _getDevice_ACPI_Path HDEF
+      _getDevice_ACPI_Path $SSDT
       _setDevice '"model"' '"Realtek Audio Controller"'
       _setDevice '"hda-gfx"' '"onboard-1"'
       _setDevice '"layout-id"' '0x01, 0x00, 0x00, 0x00'
