@@ -6,16 +6,15 @@ ssdtGen is an automated bash script that attempts to build and compile SSDTs for
 
 You can download the latest version of ssdtGen to your Desktop by entering the following commands in a terminal window:
 ```
-cd ~/Desktop
-curl -O -L https://raw.githubusercontent.com/mattcarlotta/ssdtGen/master/ssdtGen.sh
+cd ~/Desktop && curl -O -L https://raw.githubusercontent.com/mattcarlotta/ssdtGen/master/ssdtGen.sh
 ```
 You can then verify the downloaded size (should be about 34kb):
 ```
-wc -c ~/Desktop/ssdtGen.sh
+wc -c ssdtGen.sh
 ```
 You must change the file permissions to make it executable:
 ```
-chmod +x ~/Desktop/ssdtGen.sh
+chmod +x ssdtGen.sh
 ```
 Lastly, use this command to run the script:
 ```
