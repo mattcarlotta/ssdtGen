@@ -329,7 +329,6 @@ function _findDeviceProp()
   if [ ! -z "$PROP2" ];
     then
       SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP2 | grep $PROP2 |  sed -e 's/ *["|=:/_@]//g; s/'$PROP2'//g')
-      echo 'Triggered'
       echo $SSDT_VALUE
     else
       SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@]//g; s/'$PROP'//g')
