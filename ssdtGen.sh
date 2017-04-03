@@ -2,7 +2,7 @@
 #
 # Script (ssdtGen.sh) to create SSDTs for Mac OS.
 #
-# Version 0.0.4beta - Copyright (c) 2017 by M.F.C.
+# Version 0.0.5beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
@@ -324,7 +324,16 @@ function _setDevice()
 function _findDeviceProp()
 {
   PROP=$1
-  SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@]//g; s/'$PROP'//g')
+  local PROP2=$2
+  echo $PROP2
+  if [ ! -z "$PROP2" ];
+    then
+      SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k IOName | grep IOName |  sed -e 's/ *["|=:/_@]//g; s/IOName//g')
+      echo 'Triggered'
+      echo $SSDT_VALUE
+    else
+      SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@]//g; s/'$PROP'//g')
+  fi
 
   _checkDevice_Prop "${SSDT_VALUE}" "$DEVICE" "$PROP"
 
@@ -516,11 +525,17 @@ function _getExtDevice_Address()
 function _getDevice_ACPI_Path()
 {
   DEVICE=$1
+  NEWDEVICE=$2
   PROP='acpi-path'
   SSDTADR=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
   _checkDevice_Prop "${SSDTADR}" "$DEVICE" "$PROP"
 
-  echo '    Device ('${gSSDTPath}'.'${DEVICE}')'                                          >> "$gSSDT"
+  if [ ! -z "$NEWDEVICE" ];
+    then
+      echo '    Device ('${gSSDTPath}'.'${NEWDEVICE}')'                                          >> "$gSSDT"
+    else
+      echo '    Device ('${gSSDTPath}'.'${DEVICE}')'                                          >> "$gSSDT"
+  fi
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
   _getDSM
@@ -536,12 +551,13 @@ function _buildSSDT()
   if [[ "$SSDT" == "ALZA" ]];
     then
       # ****need to switch HDEF to ALZA ****
-      _getDevice_ACPI_Path $SSDT
+      #_getDevice_ACPI_Path "HDEF"
+      _getDevice_ACPI_Path "${SSDT}" "HDEF"
       _setDevice '"model"' '"Realtek Audio Controller"'
       _setDevice '"hda-gfx"' '"onboard-1"'
       _setDevice '"layout-id"' '0x01, 0x00, 0x00, 0x00'
       _setDevice '"PinConfigurations"' '0x00'
-      _findDeviceProp 'compatible'
+      _findDeviceProp 'compatible' 'IOName'
       _close_Brackets
       _setDevice_Status
   fi
@@ -549,7 +565,8 @@ function _buildSSDT()
   if [[ "$SSDT" == "EVMR" ]];
     then
       # ****need to switch SPSR to EVMR ****
-      _getDevice_ACPI_Path $SSDT
+      #_getDevice_ACPI_Path "SPSR"
+      _getDevice_ACPI_Path "${SSDT}" "SPSR"
       _setDevice '"AAPL,slot-name"' '"Built In"'
       _setDevice '"device_type"' '"Intel SPSR Controller"'
       _setDevice '"name"' '"C610/X99 Series Chipset SPSR"'
@@ -567,7 +584,7 @@ function _buildSSDT()
       _setDevice '"name"' '"Intel sSata Controller"'
       _setDevice '"model"' '"Intel 99 Series Chipset Family sSATA Controller"'
       _setDevice '"device_type"' '"AHCI Controller"'
-      _findDeviceProp 'compatible'
+      _findDeviceProp 'compatible' 'IOName'
       _findDeviceProp 'device-id'
       _close_Brackets
   fi
@@ -619,13 +636,14 @@ function _buildSSDT()
 
   if [[ "$SSDT" == "HECI" ]];
     then
-        # ****need to switch IMEI to HECI ****
-      _getDevice_ACPI_Path $SSDT
+      # ****need to switch IMEI to HECI ****
+      #_getDevice_ACPI_Path "IMEI"
+      _getDevice_ACPI_Path "${SSDT}" "IMEI"
       _setDevice '"AAPL,slot-name"' '"Built In"'
       _setDevice '"model"' '"IMEI Controller"'
       _setDevice '"built-in"' '0x00'
-      _findDeviceProp 'compatible'
-      _findDeviceProp 'device-id'
+      _setDevice '"compatible"' '"pci8086,1e3a"'
+      _setDevice '"device-id"' '0x3A, 0x1E, 0x00, 0x00'
       _close_Brackets
       _setDevice_Status
   fi
@@ -633,7 +651,7 @@ function _buildSSDT()
   if [[ "$SSDT" == "LPC0" ]];
     then
       _getExtDevice_Address $SSDT
-      _findDeviceProp 'compatible'
+      _setDevice '"compatible"' '"pci8086,9c43"'
       _close_Brackets
   fi
 
@@ -645,7 +663,7 @@ function _buildSSDT()
       _setDevice '"device-type"' '"AHCI Controller"'
       _setDevice '"name"' '"Intel AHCI Controller"'
       _setDevice '"model"' '"Intel 99 Series Chipset Family SATA Controller"'
-      _findDeviceProp 'compatible'
+      _findDeviceProp 'compatible' 'IOName'
       _findDeviceProp 'device-id'
       _close_Brackets
   fi
