@@ -2,7 +2,7 @@
 #
 # Script (ssdtGen.sh) to create SSDTs for Mac OS.
 #
-# Version 0.0.5beta - Copyright (c) 2017 by M.F.C.
+# Version 0.0.6beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
@@ -328,7 +328,7 @@ function _findDeviceProp()
   echo $PROP2
   if [ ! -z "$PROP2" ];
     then
-      SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k IOName | grep IOName |  sed -e 's/ *["|=:/_@]//g; s/IOName//g')
+      SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP2 | grep $PROP2 |  sed -e 's/ *["|=:/_@]//g; s/'$PROP2'//g')
       echo 'Triggered'
       echo $SSDT_VALUE
     else
@@ -437,8 +437,11 @@ function _findAUDIO()
   PROP='attached-gpu-control-path'
   GPUPATH=$(ioreg -l | grep $PROP | sed -e 's/ *[",|=:<a-z>/_@-]//g; s/IOSAACPIPEPCI00AACPIPCI//g; s/3IOPP//g; s/0NVDADC2NVDAAGPM//g')
   PCISLOT=${GPUPATH:0:4} #BR3A
-  DEVICE=${GPUPATH:4:4} #H000/GFX1
+  DEVICE=${GPUPATH:4:4} #H000
   GPU=$DEVICE
+
+  local PROP2='device-id'
+  GPUDEVID=$(ioreg -p IODeviceTree -n $DEVICE -r -k $PROP | grep $PROP2 | sed -e 's/ *[",|=<>:/_@]//g; s/'$PROP2'//g')
 
   _checkDevice_Prop "${GPUPATH}" "$SSDT" "$PROP"
 
@@ -609,7 +612,7 @@ function _buildSSDT()
       _setDevice '"@3,connector-type"' '0x00, 0x08, 0x00, 0x00'
       _setDevice '"@4,connector-type"' '0x00, 0x08, 0x00, 0x00'
       _setDevice '"@5,connector-type"' '0x00, 0x08, 0x00, 0x00'
-      _findDeviceProp 'device-id'
+      _setDevice '"device-id"' "0x${GPUDEVID:0:2}, 0x${GPUDEVID:2:2}, 0x00, 0x00"
       _close_Brackets
       _findAUDIO
       _setDevice '"name"' '"HD Audio"'

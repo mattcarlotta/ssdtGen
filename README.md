@@ -1,4 +1,4 @@
-# ssdtGen 0.0.5beta
+# ssdtGen 0.0.6beta
 
 Introduction
 
