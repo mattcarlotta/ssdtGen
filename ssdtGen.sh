@@ -2,7 +2,7 @@
 #
 # Script (ssdtGen.sh) to create SSDTs for Mac OS.
 #
-# Version 0.0.6beta - Copyright (c) 2017 by M.F.C.
+# Version 0.0.7beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
@@ -305,7 +305,7 @@ function _setDevice_NoBuffer()
 #===============================================================================##
 ## SET DEVICE PROPS #
 ##==============================================================================##
-function _setDevice()
+function _setDeviceProp()
 {
   PROP=$1
   VALUE=$2
@@ -534,9 +534,9 @@ function _getDevice_ACPI_Path()
 
   if [ ! -z "$NEWDEVICE" ];
     then
-      echo '    Device ('${gSSDTPath}'.'${NEWDEVICE}')'                                          >> "$gSSDT"
+      echo '    Device ('${gSSDTPath}'.'${NEWDEVICE}')'                                   >> "$gSSDT"
     else
-      echo '    Device ('${gSSDTPath}'.'${DEVICE}')'                                          >> "$gSSDT"
+      echo '    Device ('${gSSDTPath}'.'${DEVICE}')'                                      >> "$gSSDT"
   fi
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
@@ -555,10 +555,10 @@ function _buildSSDT()
       # ****need to switch HDEF to ALZA ****
       #_getDevice_ACPI_Path "HDEF"
       _getDevice_ACPI_Path "${SSDT}" "HDEF"
-      _setDevice '"model"' '"Realtek Audio Controller"'
-      _setDevice '"hda-gfx"' '"onboard-1"'
-      _setDevice '"layout-id"' '0x01, 0x00, 0x00, 0x00'
-      _setDevice '"PinConfigurations"' '0x00'
+      _setDeviceProp '"model"' '"Realtek Audio Controller"'
+      _setDeviceProp '"hda-gfx"' '"onboard-1"'
+      _setDeviceProp '"layout-id"' '0x01, 0x00, 0x00, 0x00'
+      _setDeviceProp '"PinConfigurations"' '0x00'
       _findDeviceProp 'compatible' 'IOName'
       _close_Brackets
       _setDevice_Status
@@ -569,10 +569,10 @@ function _buildSSDT()
       # ****need to switch SPSR to EVMR ****
       #_getDevice_ACPI_Path "SPSR"
       _getDevice_ACPI_Path "${SSDT}" "SPSR"
-      _setDevice '"AAPL,slot-name"' '"Built In"'
-      _setDevice '"device_type"' '"Intel SPSR Controller"'
-      _setDevice '"name"' '"C610/X99 Series Chipset SPSR"'
-      _setDevice '"model"' '"Intel SPSR Chipset"'
+      _setDeviceProp '"AAPL,slot-name"' '"Built In"'
+      _setDeviceProp '"device_type"' '"Intel SPSR Controller"'
+      _setDeviceProp '"name"' '"C610/X99 Series Chipset SPSR"'
+      _setDeviceProp '"model"' '"Intel SPSR Chipset"'
       _findDeviceProp 'device-id'
       _close_Brackets
       _setDevice_Status
@@ -581,11 +581,11 @@ function _buildSSDT()
   if [[ "$SSDT" == "EVSS" ]];
     then
       _getExtDevice_Address $SSDT
-      _setDevice '"AAPL,slot-name"' '"Built In"'
-      _setDevice '"built-in"' '0x00'
-      _setDevice '"name"' '"Intel sSata Controller"'
-      _setDevice '"model"' '"Intel 99 Series Chipset Family sSATA Controller"'
-      _setDevice '"device_type"' '"AHCI Controller"'
+      _setDeviceProp '"AAPL,slot-name"' '"Built In"'
+      _setDeviceProp '"built-in"' '0x00'
+      _setDeviceProp '"name"' '"Intel sSata Controller"'
+      _setDeviceProp '"model"' '"Intel 99 Series Chipset Family sSATA Controller"'
+      _setDeviceProp '"device_type"' '"AHCI Controller"'
       _findDeviceProp 'compatible' 'IOName'
       _findDeviceProp 'device-id'
       _close_Brackets
@@ -594,31 +594,16 @@ function _buildSSDT()
   if [[ "$SSDT" == "GFX1" ]];
     then
       _findGPU
-      _setDevice '"name"' '"Display"'
-      _setDevice '"model"' '"NVIDIA GeForce GTX"'
-      _setDevice '"hda-gfx"' '"onboard-2"'
-      _setDevice '"AAPL,slot-name"' '"Slot-1"'
-      _setDevice '"@2,AAPL,boot-display"' '0x02'
-      _setDevice '"@0,name"' '"NVDA,Display-A"'
-      _setDevice '"@1,name"' '"NVDA,Display-B"'
-      _setDevice '"@2,name"' '"NVDA,Display-C"'
-      _setDevice '"@3,name"' '"NVDA,Display-D"'
-      _setDevice '"@4,name"' '"NVDA,Display-E"'
-      _setDevice '"@5,name"' '"NVDA,Display-F"'
-      _setDevice '"@0,connector-type"' '0x00, 0x08, 0x00, 0x00'
-      _setDevice '"@1,connector-type"' '0x00, 0x08, 0x00, 0x00'
-      _setDevice '"@2,connector-type"' '0x00, 0x08, 0x00, 0x00'
-      _setDevice '"@3,connector-type"' '0x00, 0x08, 0x00, 0x00'
-      _setDevice '"@4,connector-type"' '0x00, 0x08, 0x00, 0x00'
-      _setDevice '"@5,connector-type"' '0x00, 0x08, 0x00, 0x00'
-      _setDevice '"device-id"' "0x${GPUDEVID:0:2}, 0x${GPUDEVID:2:2}, 0x00, 0x00"
+      _setDeviceProp '"hda-gfx"' '"onboard-2"'
+      _setDeviceProp '"@0,connector-type"' '0x00, 0x08, 0x00, 0x00'
+      _setDeviceProp '"@1,connector-type"' '0x00, 0x08, 0x00, 0x00'
+      _setDeviceProp '"@2,connector-type"' '0x00, 0x08, 0x00, 0x00'
+      _setDeviceProp '"@3,connector-type"' '0x00, 0x08, 0x00, 0x00'
+      _setDeviceProp '"@4,connector-type"' '0x00, 0x08, 0x00, 0x00'
+      _setDeviceProp '"@5,connector-type"' '0x00, 0x08, 0x00, 0x00'
       _close_Brackets
       _findAUDIO
-      _setDevice '"name"' '"HD Audio"'
-      _setDevice '"hda-gfx"' '"onboard-2"'
-      _setDevice '"AAPL,slot-name"' '"Slot-1"'
-      _setDevice '"built-in"' '0x00'
-      _setDevice '"device-type"' '"HDMI AUDIO"'
+      _setDeviceProp '"hda-gfx"' '"onboard-2"'
       _findDeviceProp 'device-id'
       _close_Brackets
       _setGPUDevice_Status
@@ -627,9 +612,9 @@ function _buildSSDT()
   if [[ "$SSDT" == "GLAN" ]];
     then
       _getExtDevice_Address $SSDT
-      _setDevice '"model"' '"Intel i218V"'
-      _setDevice '"name"' '"Ethernet Controller"'
-      _setDevice '"built-in"' '0x00'
+      _setDeviceProp '"model"' '"Intel i218V"'
+      _setDeviceProp '"name"' '"Ethernet Controller"'
+      _setDeviceProp '"built-in"' '0x00'
       _findDeviceProp 'device-id'
       _findDeviceProp 'subsystem-id'
       _findDeviceProp 'subsystem-vendor-id'
@@ -641,11 +626,11 @@ function _buildSSDT()
       # ****need to switch IMEI to HECI ****
       #_getDevice_ACPI_Path "IMEI"
       _getDevice_ACPI_Path "${SSDT}" "IMEI"
-      _setDevice '"AAPL,slot-name"' '"Built In"'
-      _setDevice '"model"' '"IMEI Controller"'
-      _setDevice '"built-in"' '0x00'
-      _setDevice '"compatible"' '"pci8086,1e3a"'
-      _setDevice '"device-id"' '0x3A, 0x1E, 0x00, 0x00'
+      _setDeviceProp '"AAPL,slot-name"' '"Built In"'
+      _setDeviceProp '"model"' '"IMEI Controller"'
+      _setDeviceProp '"built-in"' '0x00'
+      _setDeviceProp '"compatible"' '"pci8086,1e3a"'
+      _setDeviceProp '"device-id"' '0x3A, 0x1E, 0x00, 0x00'
       _close_Brackets
       _setDevice_Status
   fi
@@ -653,18 +638,18 @@ function _buildSSDT()
   if [[ "$SSDT" == "LPC0" ]];
     then
       _getExtDevice_Address $SSDT
-      _setDevice '"compatible"' '"pci8086,9c43"'
+      _setDeviceProp '"compatible"' '"pci8086,9c43"'
       _close_Brackets
   fi
 
   if [[ "$SSDT" == "SAT1" ]];
     then
       _getExtDevice_Address $SSDT
-      _setDevice '"AAPL,slot-name"' '"Built In"'
-      _setDevice '"built-in"' '0x00'
-      _setDevice '"device-type"' '"AHCI Controller"'
-      _setDevice '"name"' '"Intel AHCI Controller"'
-      _setDevice '"model"' '"Intel 99 Series Chipset Family SATA Controller"'
+      _setDeviceProp '"AAPL,slot-name"' '"Built In"'
+      _setDeviceProp '"built-in"' '0x00'
+      _setDeviceProp '"device-type"' '"AHCI Controller"'
+      _setDeviceProp '"name"' '"Intel AHCI Controller"'
+      _setDeviceProp '"model"' '"Intel 99 Series Chipset Family SATA Controller"'
       _findDeviceProp 'compatible' 'IOName'
       _findDeviceProp 'device-id'
       _close_Brackets
@@ -682,8 +667,8 @@ function _buildSSDT()
   if [[ "$SSDT" == "XHC" ]];
     then
       _getExtDevice_Address $SSDT
-      _setDevice '"name"' '"Intel XHC Controller"'
-      _setDevice '"model"' '"Intel 99 Series Chipset Family USB xHC Host Controller"'
+      _setDeviceProp '"name"' '"Intel XHC Controller"'
+      _setDeviceProp '"model"' '"Intel 99 Series Chipset Family USB xHC Host Controller"'
       _setDevice_NoBuffer '"AAPL,current-available"' '0x0834'
       _setDevice_NoBuffer '"AAPL,current-extra"' '0x0A8C'
       _setDevice_NoBuffer '"AAPL,current-in-sleep"' '0x0A8C'
@@ -693,7 +678,7 @@ function _buildSSDT()
       echo '                {'                                                            >> "$gSSDT"
       echo '                    0x00'                                                     >> "$gSSDT"
       echo '                },'                                                           >> "$gSSDT"
-      _setDevice '"AAPL,clock-id"' '0x01'
+      _setDeviceProp '"AAPL,clock-id"' '0x01'
       _findDeviceProp 'device-id'
       _close_Brackets
   fi
@@ -838,7 +823,7 @@ function _user_choices()
 ##==============================================================================##
 function greet()
 {
-  printf '            ssdtGen Version 0.0.4b - Copyright (c) 2017 by M.F.C.'
+  printf '            ssdtGen Version 0.0.7b - Copyright (c) 2017 by M.F.C.'
   printf  "\n%s" '--------------------------------------------------------------------------------'
   printf ' \n'
   sleep 0.25
