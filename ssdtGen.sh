@@ -776,7 +776,7 @@ function _user_choices()
   cr=${cr%.}
 
   echo ''
-  read -p "build all(${bold}-ba${normal}) | build a single SSDT(${bold}-b NAME${normal}) | debug(${bold}-d${normal}) | help(${bold}-h${normal}) | exit(${bold}-e${normal})? $cr" choice
+  read -p "build all(${bold}-ba${normal}) | build a single SSDT(${bold}-b NAME${normal}) | debug(${bold}-d${normal}) | help(${bold}-h${normal}) | exit(${bold}-e${normal}) $cr" choice
     case "$choice" in
       # attempt to build all SSDTs
       -ba|-BA )
