@@ -2,7 +2,7 @@
 #
 # Script (ssdtGen.sh) to create SSDTs for Mac OS.
 #
-# Version 0.0.7beta - Copyright (c) 2017 by M.F.C.
+# Version 0.0.8beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
@@ -66,60 +66,56 @@ normal=$(tput sgr0)
 #SSDT Table-ID array
 gTableID=(
 [0]='ALZA'
-[1]='EVMR'
-[2]='EVSS'
-[3]='GFX1'
-[4]='GLAN'
-[5]='HECI'
-[6]='LPC0'
-[7]='SAT1'
-[8]='SMBS'
-[9]='XHC'
-[10]='XOSI'
+[1]='EVSS'
+[2]='GFX1'
+[3]='GLAN'
+[4]='HECI'
+[5]='LPC0'
+[6]='SAT1'
+[7]='SMBS'
+[8]='XHC'
+[9]='XOSI'
 )
 
 #SSDT Table Length array
 gTableLength=(
 [0]="0x000000ED (237)"
-[1]="0x00000108 (264)"
-[2]="0x0000013A (314)"
-[3]="0x0000037C (892)"
-[4]="0x000000E6 (230)"
-[5]="0x000000FE (254)"
-[6]="0x00000078 (120)"
-[7]="0x00000138 (312)"
-[8]="0x000000B6 (182)"
-[9]="0x0000016F (367)"
-[10]="0x000000B0 (176)"
+[1]="0x0000013A (314)"
+[2]="0x0000037C (892)"
+[3]="0x000000E6 (230)"
+[4]="0x000000FE (254)"
+[5]="0x00000078 (120)"
+[6]="0x00000138 (312)"
+[7]="0x000000B6 (182)"
+[8]="0x0000016F (367)"
+[9]="0x000000B0 (176)"
 )
 
 #SSDT Table Checksum array
 gTableChecksum=(
 [0]='0xBC'
-[1]='0x5F'
-[2]='0x02'
-[3]='0x89'
-[4]='0x53'
-[5]='0x78'
-[6]='0x11'
-[7]='0x9E'
-[8]='0x7F'
-[9]='0xF4'
-[10]='0xA2'
+[1]='0x02'
+[2]='0x89'
+[3]='0x53'
+[4]='0x78'
+[5]='0x11'
+[6]='0x9E'
+[7]='0x7F'
+[8]='0xF4'
+[9]='0xA2'
 )
 
 
 # 0 ALZA, Length  0x000000ED (237), Checksum 0xBC, Device
-# 1 EVMR, Length  0x00000108 (264), Checksum 0x5F, Device
-# 2 EVSS, Length  0x0000013A (314), Checksum 0x02, _DSM
-# 3 GFX1, Length  0x0000037C (892), Checksum 0x89, Device
-# 4 GLAN, Length  0x000000E6 (230), Checksum 0x53, _DSM
-# 5 HECI, Length  0x000000FE (254), Checksum 0x78, Device
-# 6 LCP0, Length  0x00000078 (120), Checksum 0x11, _DSM
-# 7 SAT1, Length  0x00000138 (312), Checksum 0x9E, _DSM
-# 8 SMBS, Length  0x000000B6 (182), Checksum 0x7F, Device
-# 9 XHC,  Length  0x0000016F (367), Checksum 0xF4, _DSM
-# 10 XOSI,Length  0x000000B0 (176), Checksum 0xA2, Special
+# 1 EVSS, Length  0x0000013A (314), Checksum 0x02, _DSM
+# 2 GFX1, Length  0x0000037C (892), Checksum 0x89, Device
+# 3 GLAN, Length  0x000000E6 (230), Checksum 0x53, _DSM
+# 4 HECI, Length  0x000000FE (254), Checksum 0x78, Device
+# 5 LCP0, Length  0x00000078 (120), Checksum 0x11, _DSM
+# 6 SAT1, Length  0x00000138 (312), Checksum 0x9E, _DSM
+# 7 SMBS, Length  0x000000B6 (182), Checksum 0x7F, Device
+# 8 XHC,  Length  0x0000016F (367), Checksum 0xF4, _DSM
+# 9 XOSI,Length  0x000000B0 (176), Checksum 0xA2, Special
 
 #===============================================================================##
 ## USER ABORTS SCRIPT #
@@ -269,25 +265,9 @@ function _checkDevice_Prop()
 ##==============================================================================##
 function _close_Brackets()
 {
-  MB=$1
-
-  #if [[ "$addDTGP" == true]];
-    #then
-    #echo '            }, Local0)'                                                        >> "$gSSDT"
-    #echo '           DTGP (Arg0, Arg1, Arg2, Arg3, RefOf (Local0))'                      >> "$gSSDT"
-    #echo '           Return (Local0)'                                                    >> "$gSSDT"
-  #else
   echo '            })'                                                                   >> "$gSSDT"
-  #fi
-
   echo '        }'                                                                        >> "$gSSDT"
   echo '    }'                                                                            >> "$gSSDT"
-
-  if [ "$MB" = true ];
-    then
-    echo '   }'                                                                           >> "$gSSDT"
-    echo '  }'                                                                            >> "$gSSDT"
-  fi
 }
 
 #===============================================================================##
@@ -403,12 +383,7 @@ function _getDSM()
   echo '                })'                                                               >> "$gSSDT"
   echo '            }'                                                                    >> "$gSSDT"
   echo ''                                                                                 >> "$gSSDT"
-  #if [[ "$addDTGP" == true]];
-    #then
-    #echo '            Store (Package ()'                                                 >> "$gSSDT"
-    #else
   echo '            Return (Package ()'                                                   >> "$gSSDT"
-  #fi
   echo '            {'                                                                    >> "$gSSDT"
 }
 
@@ -483,23 +458,145 @@ function _findAUDIO()
  ##==============================================================================##
  function _findDevice_Address()
  {
-   DEVICE=$1
-   PROP='acpi-path'
-   SSDTADR=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
-   _checkDevice_Prop "${SSDTADR}" "$DEVICE" "$PROP"
+  DEVICE=$1
+  PROP='acpi-path'
+  SSDTADR=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+  _checkDevice_Prop "${SSDTADR}" "$DEVICE" "$PROP"
 
-   echo '    Device ('${gSSDTPath}'.SBUS)'                                                >> "$gSSDT"
-   echo '    {'                                                                           >> "$gSSDT"
-   echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                           >> "$gSSDT"
-   echo '        Device (BUS0)'                                                           >> "$gSSDT"
-   echo '        {'                                                                       >> "$gSSDT"
-   echo '            Name (_CID, "smbus") // _CID: Compatible ID'                         >> "$gSSDT"
-   echo '            Name (_ADR, Zero)'                                                   >> "$gSSDT"
-   echo '            Device (DVL0)'                                                       >> "$gSSDT"
-   echo '            {'                                                                   >> "$gSSDT"
-   echo '                   Name (_ADR, 0x57)'                                            >> "$gSSDT"
-   echo '                   Name (_CID, "diagsvault")'                                    >> "$gSSDT"
-   _getDSM
+  echo '    Device ('${gSSDTPath}'.SBUS)'                                                 >> "$gSSDT"
+  echo '    {'                                                                            >> "$gSSDT"
+  echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
+  echo '        Device (BUS0)'                                                            >> "$gSSDT"
+  echo '        {'                                                                        >> "$gSSDT"
+  echo '            Name (_CID, "smbus") // _CID: Compatible ID'                          >> "$gSSDT"
+  echo '            Name (_ADR, Zero)'                                                    >> "$gSSDT"
+  echo '            Device (MKY0)'                                                        >> "$gSSDT"
+  echo '            {'                                                                    >> "$gSSDT"
+  echo '                   Name (_ADR, Zero)'                                             >> "$gSSDT"
+  echo '                   Name (_CID, "mikey")'                                          >> "$gSSDT"
+  _getDSM
+  echo '                          "refnum",'                               >> "$gSSDT"
+  echo '                          Zero,'                               >> "$gSSDT"
+  echo '                          "address",'                               >> "$gSSDT"
+  echo '                          0x39,'                               >> "$gSSDT"
+  echo '                          "device-id",'                               >> "$gSSDT"
+  echo '                          0x0CCB,'                               >> "$gSSDT"
+  echo '                          Buffer (One)'                               >> "$gSSDT"
+  echo '                          {'                               >> "$gSSDT"
+  echo '                              0x00'                               >> "$gSSDT"
+  echo '                          }'                               >> "$gSSDT"
+  echo '                      })'                               >> "$gSSDT"
+  echo '                   }'                               >> "$gSSDT"
+  echo '                   Method (H1EN, 1, Serialized)'                                  >> "$gSSDT"
+  echo '                   {'                                                             >> "$gSSDT"
+  echo '                        If (LLessEqual (Arg0, One))'                              >> "$gSSDT"
+  echo '                        {'                                                        >> "$gSSDT"
+  echo '                            If (LEqual (Arg0, One))'                              >> "$gSSDT"
+  echo '                            {'                              >> "$gSSDT"
+  echo '                                Or (GL04, 0x04, GL04)'                              >> "$gSSDT"
+  echo '                            }'                                                        >> "$gSSDT"
+  echo '                            Else'                              >> "$gSSDT"
+  echo '                            {'                                                        >> "$gSSDT"
+  echo '                            And (GL04, 0xFB, GL04)'                              >> "$gSSDT"
+  echo '                            }'                                                        >> "$gSSDT"
+  echo '                        }'                                                        >> "$gSSDT"
+  echo '                   }'                                                        >> "$gSSDT"
+  echo '                   Method (H1IL, 0, Serialized)'                                  >> "$gSSDT"
+  echo '                   {'                                                             >> "$gSSDT"
+  echo '                        ShiftRight (And (GL00, 0x02), One, Local0)'                              >> "$gSSDT"
+  echo '                        Return (Local0)'                                                        >> "$gSSDT"
+  echo '                   }'                                                        >> "$gSSDT"
+  echo '                   Method (H1IP, 1, Serialized)'                                  >> "$gSSDT"
+  echo '                   {'                                                             >> "$gSSDT"
+  echo '                        Store (Arg0, Local0)'                              >> "$gSSDT"
+  echo '                        If (LLessEqual (Arg0, One))'                              >> "$gSSDT"
+  echo '                        {'                                                        >> "$gSSDT"
+  echo '                            Not (Arg0, Arg0)'                              >> "$gSSDT"
+  echo '                            Store (Arg0, GI01)'                              >> "$gSSDT"
+  echo '                        }'                                                        >> "$gSSDT"
+  echo '                   }'                                                        >> "$gSSDT"
+  echo '                   Name (H1IN, 0x11)'                                  >> "$gSSDT"
+  echo '                   Scope (\_GPE)'                                  >> "$gSSDT"
+  echo '                   {'                                                             >> "$gSSDT"
+  echo '                        Method (_L11, 0, NotSerialized)'                              >> "$gSSDT"
+  echo '                        {'                                                        >> "$gSSDT"
+  echo '                            Notify (\_SB.PCI0.SBUS.BUS0.MKY0, 0x80)'                              >> "$gSSDT"
+  echo '                        }'                                                        >> "$gSSDT"
+  echo '                   }'                                                        >> "$gSSDT"
+  echo '                   Method (P1IL, 0, Serialized)'                                  >> "$gSSDT"
+  echo '                   {'                                                             >> "$gSSDT"
+  echo '                        ShiftRight (And (GL00, 0x40), 0x06, Local0)'                              >> "$gSSDT"
+  echo '                        Return (Local0)'                                                        >> "$gSSDT"
+  echo '                   }'                                                        >> "$gSSDT"
+  echo '                   Method (P1IP, 1, Serialized)'                                  >> "$gSSDT"
+  echo '                   {'                                                             >> "$gSSDT"
+  echo '                        If (LLessEqual (Arg0, One))'                              >> "$gSSDT"
+  echo '                        {'                                                        >> "$gSSDT"
+  echo '                            Not (Arg0, Arg0)'                              >> "$gSSDT"
+  echo '                            Store (Arg0, GI06)'                              >> "$gSSDT"
+  echo '                        }'                                                        >> "$gSSDT"
+  echo '                   }'                                                        >> "$gSSDT"
+  echo '                   Name (P1IN, 0x16)'                                  >> "$gSSDT"
+  echo '                   Scope (\_GPE)'                                  >> "$gSSDT"
+  echo '                   {'                                                             >> "$gSSDT"
+  echo '                        Method (_L16, 0, NotSerialized)'                              >> "$gSSDT"
+  echo '                        {'                                                        >> "$gSSDT"
+  echo '                            XOr (GI06, One, GI06)'                              >> "$gSSDT"
+  echo '                            Notify (\_SB.PCI0.SBUS.BUS0.MKY0, 0x80)'                              >> "$gSSDT"
+  echo '                        }'                                                        >> "$gSSDT"
+  echo '                   }'                                                        >> "$gSSDT"
+  echo '            }'                                                        >> "$gSSDT"
+  echo '            Device (DVL0)'                                                        >> "$gSSDT"
+  echo '            {'                                                        >> "$gSSDT"
+  echo '                Name (_ADR, 0x57)'                                                        >> "$gSSDT"
+  echo '                Name (_CID, "diagsvault")'                                                        >> "$gSSDT"
+  _getDSM
+  echo '                        "address",'                                                        >> "$gSSDT"
+  echo '                        0x57,'                                                        >> "$gSSDT"
+  echo '                        Buffer (One)'                                                        >> "$gSSDT"
+  echo '                        {'                                                        >> "$gSSDT"
+  echo '                            0x00'                                                        >> "$gSSDT"
+  echo '                        }'                                                        >> "$gSSDT"
+  _close_Brackets
+  echo '            Device (BLC0)'                                                        >> "$gSSDT"
+  echo '            {'                                                        >> "$gSSDT"
+  echo '                Name (_ADR, Zero)'                                                        >> "$gSSDT"
+  echo '                Name (_CID, "smbus-blc")'                                                        >> "$gSSDT"
+  _getDSM
+  echo '                        "refnum",'                                                        >> "$gSSDT"
+  echo '                        Zero,'                                                        >> "$gSSDT"
+  echo '                        "version",'                                                        >> "$gSSDT"
+  echo '                        0x02,'                                                        >> "$gSSDT"
+  echo '                        "fault-off",'                                                        >> "$gSSDT"
+  echo '                        0x03,'                                                        >> "$gSSDT"
+  echo '                        "fault-len",'                                                        >> "$gSSDT"
+  echo '                        0x04,'                                                        >> "$gSSDT"
+  echo '                        "skey",'                                                        >> "$gSSDT"
+  echo '                        0x4C445342,'                                                        >> "$gSSDT"
+  echo '                        "type",'                                                        >> "$gSSDT"
+  echo '                        0x49324300,'                                                        >> "$gSSDT"
+  echo '                        "smask",'                                                        >> "$gSSDT"
+  echo '                        0xFF,'                                                        >> "$gSSDT"
+  _close_Brackets
+  echo '        }'                                                        >> "$gSSDT"
+  echo '        Device (BUS1)'                                                        >> "$gSSDT"
+  echo '        {'                                                        >> "$gSSDT"
+  echo '            Name (_CID, "smbus")'                                                        >> "$gSSDT"
+  echo '            Name (_ADR, One)'                                                        >> "$gSSDT"
+  echo '        }'                                                        >> "$gSSDT"
+  echo '    }'                                                        >> "$gSSDT"
+  echo '    OperationRegion (GPIO, SystemIO, 0x0500, 0x3C)'                                                        >> "$gSSDT"
+  echo '    Field (GPIO, ByteAcc, NoLock, Preserve)'                                                        >> "$gSSDT"
+  echo '    {'                                                        >> "$gSSDT"
+  echo '        Offset (0x0C),'                                                        >> "$gSSDT"
+  echo '        GL00,   8,'                                                        >> "$gSSDT"
+  echo '            ,   1,'                                                        >> "$gSSDT"
+  echo '        GI01,   1,'                                                        >> "$gSSDT"
+  echo '            ,   1,'                                                        >> "$gSSDT"
+  echo '        GI06,   1,'                                                        >> "$gSSDT"
+  echo '        Offset (0x2D),'                                                        >> "$gSSDT"
+  echo '        GL04,   8'                                                        >> "$gSSDT"
+  echo '    }'                                                        >> "$gSSDT"
  }
 
 #===============================================================================##
@@ -555,25 +652,14 @@ function _buildSSDT()
       # ****need to switch HDEF to ALZA ****
       #_getDevice_ACPI_Path "HDEF"
       _getDevice_ACPI_Path "${SSDT}" "HDEF"
+      _setDeviceProp '"AAPL,slot-name"' '"Built In"'
+      _setDeviceProp '"device_type"' '"Audio Controller"'
+      _setDeviceProp '"built-in"' '0x00'
       _setDeviceProp '"model"' '"Realtek Audio Controller"'
       _setDeviceProp '"hda-gfx"' '"onboard-1"'
       _setDeviceProp '"layout-id"' '0x01, 0x00, 0x00, 0x00'
       _setDeviceProp '"PinConfigurations"' '0x00'
       _findDeviceProp 'compatible' 'IOName'
-      _close_Brackets
-      _setDevice_Status
-  fi
-
-  if [[ "$SSDT" == "EVMR" ]];
-    then
-      # ****need to switch SPSR to EVMR ****
-      #_getDevice_ACPI_Path "SPSR"
-      _getDevice_ACPI_Path "${SSDT}" "SPSR"
-      _setDeviceProp '"AAPL,slot-name"' '"Built In"'
-      _setDeviceProp '"device_type"' '"Intel SPSR Controller"'
-      _setDeviceProp '"name"' '"C610/X99 Series Chipset SPSR"'
-      _setDeviceProp '"model"' '"Intel SPSR Chipset"'
-      _findDeviceProp 'device-id'
       _close_Brackets
       _setDevice_Status
   fi
@@ -594,6 +680,7 @@ function _buildSSDT()
   if [[ "$SSDT" == "GFX1" ]];
     then
       _findGPU
+      _setDeviceProp '"AAPL,slot-name"' '"Built In"'
       _setDeviceProp '"hda-gfx"' '"onboard-2"'
       _setDeviceProp '"@0,connector-type"' '0x00, 0x08, 0x00, 0x00'
       _setDeviceProp '"@1,connector-type"' '0x00, 0x08, 0x00, 0x00'
@@ -612,6 +699,7 @@ function _buildSSDT()
   if [[ "$SSDT" == "GLAN" ]];
     then
       _getExtDevice_Address $SSDT
+      _setDeviceProp '"AAPL,slot-name"' '"Built In"'
       _setDeviceProp '"model"' '"Intel i218V"'
       _setDeviceProp '"name"' '"Ethernet Controller"'
       _setDeviceProp '"built-in"' '0x00'
@@ -627,6 +715,7 @@ function _buildSSDT()
       #_getDevice_ACPI_Path "IMEI"
       _getDevice_ACPI_Path "${SSDT}" "IMEI"
       _setDeviceProp '"AAPL,slot-name"' '"Built In"'
+      _setDeviceProp '"name"' '"IMEI Controller"'
       _setDeviceProp '"model"' '"IMEI Controller"'
       _setDeviceProp '"built-in"' '0x00'
       _setDeviceProp '"compatible"' '"pci8086,1e3a"'
@@ -659,14 +748,14 @@ function _buildSSDT()
     then
         # ****need to switch SBUS to SMBS ****
       _findDevice_Address $SSDT
-      _findDeviceProp 'device-id'
-      _close_Brackets true
+      #_findDevice_Address SBUS
       _setDevice_Status
   fi
 
   if [[ "$SSDT" == "XHC" ]];
     then
       _getExtDevice_Address $SSDT
+      _setDeviceProp '"AAPL,slot-name"' '"Built In"'
       _setDeviceProp '"name"' '"Intel XHC Controller"'
       _setDeviceProp '"model"' '"Intel 99 Series Chipset Family USB xHC Host Controller"'
       _setDevice_NoBuffer '"AAPL,current-available"' '0x0834'
@@ -707,7 +796,7 @@ function _compileSSDT
       echo "User only wanted to build ${buildOne}" > /dev/null 2>&1
       exit 0
   fi
-  if [[ $gCount -lt 11 ]];
+  if [[ $gCount -lt 10 ]];
    then
       echo 'Attempting to build all SSDTs...' > /dev/null 2>&1
      _printHeader
@@ -823,7 +912,7 @@ function _user_choices()
 ##==============================================================================##
 function greet()
 {
-  printf '            ssdtGen Version 0.0.7b - Copyright (c) 2017 by M.F.C.'
+  printf '            ssdtGen Version 0.0.8b - Copyright (c) 2017 by M.F.C.'
   printf  "\n%s" '--------------------------------------------------------------------------------'
   printf ' \n'
   sleep 0.25
