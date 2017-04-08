@@ -2,11 +2,11 @@
 #
 # Script (ssdtGen.sh) to create SSDTs for Mac OS.
 #
-# Version 0.0.9beta - Copyright (c) 2017 by M.F.C.
+# Version 0.1.0beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
-#        compile SSDTs for X99 systems running Mac OS!
+#        compile SSDTs for X99/Z170 systems running Mac OS!
 #     - Simply run the commands in the README to download and execute the
 #        ssdtGen.sh file from your Desktop.
 #
@@ -64,46 +64,61 @@ bold=$(tput bold)
 normal=$(tput sgr0)
 
 #SSDT Table-ID array
-gTableID=(
-[0]='ALZA'
-[1]='EVSS'
-[2]='GFX1'
-[3]='GLAN'
-[4]='HECI'
-[5]='LPC0'
-[6]='SAT1'
-[7]='SMBS'
-[8]='XHC'
-[9]='XOSI'
-)
+gTableID=""
+
+# gX99=(
+# [0]='ALZA'
+# [1]='EVSS'
+# [2]='GFX1'
+# [3]='GLAN'
+# [4]='HECI'
+# [5]='LPC0'
+# [6]='SAT1'
+# [7]='SMBS'
+# [8]='XHC'
+# [9]='XOSI'
+# )
+
+# gZ170=(
+# [0]='EVSS'
+# [1]='GLAN'
+# [2]='GFX1'
+# [3]='HDAS'
+# [4]='HECI'
+# [5]='LPCB'
+# [6]='SAT0'
+# [7]='SBUS'
+# [8]='XHC'
+# [9]='XOSI'
+# )
 
 #SSDT Table Length array
-gTableLength=(
-[0]="0x000000ED (237)"
-[1]="0x0000013A (314)"
-[2]="0x0000037C (892)"
-[3]="0x000000E6 (230)"
-[4]="0x000000FE (254)"
-[5]="0x00000078 (120)"
-[6]="0x00000138 (312)"
-[7]="0x000000B6 (182)"
-[8]="0x0000016F (367)"
-[9]="0x000000B0 (176)"
-)
+# gTableLength=(
+# [0]="0x000000ED (237)"
+# [1]="0x0000013A (314)"
+# [2]="0x0000037C (892)"
+# [3]="0x000000E6 (230)"
+# [4]="0x000000FE (254)"
+# [5]="0x00000078 (120)"
+# [6]="0x00000138 (312)"
+# [7]="0x000000B6 (182)"
+# [8]="0x0000016F (367)"
+# [9]="0x000000B0 (176)"
+# )
 
 #SSDT Table Checksum array
-gTableChecksum=(
-[0]='0xBC'
-[1]='0x02'
-[2]='0x89'
-[3]='0x53'
-[4]='0x78'
-[5]='0x11'
-[6]='0x9E'
-[7]='0x7F'
-[8]='0xF4'
-[9]='0xA2'
-)
+# gTableChecksum=(
+# [0]='0xBC'
+# [1]='0x02'
+# [2]='0x89'
+# [3]='0x53'
+# [4]='0x78'
+# [5]='0x11'
+# [6]='0x9E'
+# [7]='0x7F'
+# [8]='0xF4'
+# [9]='0xA2'
+# )
 
 
 # 0 ALZA, Length  0x000000ED (237), Checksum 0xBC, Device
@@ -138,26 +153,26 @@ function display_instructions()
   printf "\n"
   printf "To build and compile all SSDTS, input ${bold}-ba${normal} or ${bold}-BA${normal}\n"
   printf "\n"
-  printf "To build and compile one SSDT, input ${bold}-b NAME${normal} or ${bold}-BA NAME${normal}:\n"
+  printf "To build and compile one SSDT, input ${bold}-b NAME${normal} or ${bold}-B NAME${normal}:\n"
   printf "\n"
-  printf "       - ${bold}ALZA${normal}: Adds support for Realtek on-board sound\n"
-  printf "       - ${bold}EVMR${normal}: Server Platform Service Rom functionality and support\n"
-  printf "          for MS SMBus transactions\n"
-  printf "       - ${bold}EVSS${normal}: Adds support for a third PCH sSata controller for IDE, AHCI,\n"
+  printf "         ${bold}x99/z170${normal}\n"
+  printf "         ${bold}---------${normal}\n"
+  printf "       - ${bold}ALZA/HDAS${normal}: Adds x99/z170 support for Realtek on-board sound\n"
+  printf "       - ${bold}EVSS${normal}: Adds x99 support for a third PCH sSata controller for IDE, AHCI,\n"
   printf "          RAID storage drives (up to 6Gb/s transfers) \n"
-  printf "       - ${bold}GFX1${normal}: Adds suport for a single Nvidia graphics card and\n"
+  printf "       - ${bold}GFX1${normal}: Adds x99/z170 support for a single Nvidia graphics card and\n"
   printf "          adds HDMI audio support for the card as well \n"
-  printf "       - ${bold}GLAN${normal}: Adds support for an Intel ethernet controller\n"
+  printf "       - ${bold}GLAN${normal}: Adds x99/z170 support for an Intel ethernet controller\n"
   printf "       - ${bold}HECI${normal}: Intel Management Engine Interface that, in general,\n"
   printf "          adds support for various tasks while the system is booting, running \n"
   printf "          or sleeping \n"
-  printf "       - ${bold}LPC0${normal}: Adds support to AppleLPC.kext for Low Pin Count devices\n"
-    printf "          to connect to the CPU\n"
-  printf "       - ${bold}SAT1${normal}: Adds support for the PCH SATA controller for SATA devices\n"
-  printf "          via Legacy or AHCI mode (up to 6Gb/s transfers)\n"
-  printf "       - ${bold}SMBS${normal}: Adds support for a SMBus controller that allows communication\n"
-  printf "          between separate hardware devices and adds I2C support (temperature,\n"
-  printf "          fan, voltage, and battery sensors)\n"
+  printf "       - ${bold}LPC0/LPCB${normal}: Adds x99/z170 support to AppleLPC.kext for Low Pin Count\n"
+  printf "          devices to connect to the CPU\n"
+  printf "       - ${bold}SAT1/SAT0${normal}: Adds x99/z170 support for the PCH SATA controller for SATA\n"
+  printf "          devices via Legacy or AHCI mode (up to 6Gb/s transfers)\n"
+  printf "       - ${bold}SMBS/SBUS${normal}: Adds x99/z170 support for a SMBus controller that allows\n"
+  printf "          communication between separate hardware devices and adds I2C support\n"
+  printf "          for temperatures, fan, voltage, and battery sensors)\n"
   printf "       - ${bold}XHC${normal}: Adds power options for the USB xHC Host Controller\n"
   printf "       - ${bold}XOSI${normal}: Adds Windows simulated support for DSDT OSI_ methods\n"
   printf "\n"
@@ -305,11 +320,14 @@ function _findDeviceProp()
 {
   PROP=$1
   local PROP2=$2
-  echo $PROP2
   if [ ! -z "$PROP2" ];
     then
-      SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP2 | grep $PROP2 |  sed -e 's/ *["|=:/_@]//g; s/'$PROP2'//g')
-      echo $SSDT_VALUE
+      if [[ "$PROP2" == 'GPU' ]];
+        then
+          SSDT_VALUE=$(ioreg -lw0 -p IODeviceTree -n "$PCISLOT" -r | awk '/device-id/' | tail -n +4 | sed -e 's/ *[",|=:/_@<>-]//g; s/deviceid//g')
+        else
+          SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP2 | grep $PROP2 |  sed -e 's/ *["|=:/_@]//g; s/'$PROP2'//g')
+      fi
     else
       SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@]//g; s/'$PROP'//g')
   fi
@@ -338,16 +356,23 @@ function _findDeviceProp()
 ##==============================================================================##
 function _setGPUDevice_Status()
 {
-  D0XX=$(ioreg -p IODeviceTree -n ${PCISLOT} -r | grep D0 | sed -e 's/ *["+|=<a-z>:/_@-]//g; s/^ *//g')
-  D0XX=${D0XX:0:4}
+  if [[ "$moboID" = "X99" ]];
+    then
+      D0XX=$(ioreg -p IODeviceTree -n ${PCISLOT} -r | grep D0 | sed -e 's/ *["+|=<a-z>:/_@-]//g; s/^ *//g')
+      D0XX=${D0XX:0:4}
 
-  _checkDevice_Prop "${D0XX}" "$PCISLOT" "D0XX device"
+      _checkDevice_Prop "${D0XX}" "$PCISLOT" "D0XX device"
 
-  echo ''                                                                                 >> "$gSSDT"
-  echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${GPU}'._STA, Zero)  // _STA: Status'      >> "$gSSDT"
-  echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${AUDIO}'._STA, Zero)  // _STA: Status'    >> "$gSSDT"
-  echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${D0XX}'._STA, Zero)  // _STA: Status'     >> "$gSSDT"
-  echo '}'                                                                                >> "$gSSDT"
+      echo ''                                                                             >> "$gSSDT"
+      echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${GPU}'._STA, Zero)  // _STA: Status'  >> "$gSSDT"
+      echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${AUDIO}'._STA, Zero)  // _STA: Status'>> "$gSSDT"
+      echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${D0XX}'._STA, Zero)  // _STA: Status' >> "$gSSDT"
+      echo '}'                                                                            >> "$gSSDT"
+    else
+      echo ''                                                                             >> "$gSSDT"
+      echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${GPU}'._STA, Zero)  // _STA: Status'  >> "$gSSDT"
+      echo '}'                                                                            >> "$gSSDT"
+  fi
 }
 
 #===============================================================================##
@@ -392,8 +417,11 @@ function _getDSM()
 ##==============================================================================##
 function _findAUDIO()
 {
-  DEVICE="${DEVICE:0:3}1"
-  AUDIO=$DEVICE
+  if [[ "$moboID" = "X99" ]];
+    then
+      DEVICE="${DEVICE:0:3}1"
+      AUDIO=$DEVICE
+  fi
 
   echo ''                                                                                 >> "$gSSDT"
   echo '    Device ('${gSSDTPath}'.'${PCISLOT}'.HDAU)'                                    >> "$gSSDT"
@@ -410,12 +438,9 @@ function _findAUDIO()
  {
   PROP='attached-gpu-control-path'
   GPUPATH=$(ioreg -l | grep $PROP | sed -e 's/ *[",|=:<a-z>/_@-]//g; s/IOSAACPIPEPCI00AACPIPCI//g; s/3IOPP//g; s/0NVDADC2NVDAAGPM//g')
-  PCISLOT=${GPUPATH:0:4} #BR3A
-  DEVICE=${GPUPATH:4:4} #H000
+  PCISLOT=${GPUPATH:0:4} #BR3A / PEG0
+  DEVICE=${GPUPATH:4:4} #H000 / PEGP
   GPU=$DEVICE
-
-  local PROP2='device-id'
-  GPUDEVID=$(ioreg -p IODeviceTree -n $DEVICE -r -k $PROP | grep $PROP2 | sed -e 's/ *[",|=<>:/_@]//g; s/'$PROP2'//g')
 
   _checkDevice_Prop "${GPUPATH}" "$SSDT" "$PROP"
 
@@ -459,11 +484,12 @@ function _findAUDIO()
  function _findDevice_Address()
  {
   DEVICE=$1
+  DEVICE2=$2
   PROP='acpi-path'
   SSDTADR=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
   _checkDevice_Prop "${SSDTADR}" "$DEVICE" "$PROP"
 
-  echo '    Device ('${gSSDTPath}'.SBUS)'                                                 >> "$gSSDT"
+  echo '    Device ('${gSSDTPath}'.'${DEVICE2}')'                                         >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
   echo '        Device (BUS0)'                                                            >> "$gSSDT"
@@ -647,7 +673,7 @@ function _buildSSDT()
 {
   SSDT=$1
 
-  if [[ "$SSDT" == "ALZA" ]];
+  if [ "$SSDT" == "ALZA" ] || [ "$SSDT" == "HDAS" ];
     then
       # ****need to switch HDEF to ALZA ****
       #_getDevice_ACPI_Path "HDEF"
@@ -692,7 +718,7 @@ function _buildSSDT()
       _findAUDIO
       _setDeviceProp '"hda-gfx"' '"onboard-2"'
       _setDeviceProp '"PinConfigurations"' '0xe0, 0x00, 0x56, 0x28'
-      _findDeviceProp 'device-id'
+      _findDeviceProp 'device-id' 'GPU'
       _close_Brackets
       _setGPUDevice_Status
   fi
@@ -701,7 +727,12 @@ function _buildSSDT()
     then
       _getExtDevice_Address $SSDT
       _setDeviceProp '"AAPL,slot-name"' '"Built In"'
-      _setDeviceProp '"model"' '"Intel i218V"'
+      if [[ "$moboID" = "Z170" ]];
+        then
+          _setDeviceProp '"model"' '"Intel i219V"'
+        else
+          _setDeviceProp '"model"' '"Intel i218V"'
+      fi
       _setDeviceProp '"name"' '"Ethernet Controller"'
       _setDeviceProp '"built-in"' '0x00'
       _findDeviceProp 'device-id'
@@ -725,31 +756,48 @@ function _buildSSDT()
       _setDevice_Status
   fi
 
-  if [[ "$SSDT" == "LPC0" ]];
+  if [ "$SSDT" == "LPC0" ] || [ "$SSDT" == "LCPB" ];
     then
       _getExtDevice_Address $SSDT
-      _setDeviceProp '"compatible"' '"pci8086,9c43"'
+      if [[ "$moboID" = "Z170" ]];
+        then
+          _setDeviceProp '"compatible"' '"pci8086,9cc1"'
+        else
+          _setDeviceProp '"compatible"' '"pci8086,9c43"'
+      fi
+
       _close_Brackets
   fi
 
-  if [[ "$SSDT" == "SAT1" ]];
+  if [ "$SSDT" == "SAT1" ] || [ "$SSDT" == "SAT0" ];
     then
       _getExtDevice_Address $SSDT
       _setDeviceProp '"AAPL,slot-name"' '"Built In"'
       _setDeviceProp '"built-in"' '0x00'
       _setDeviceProp '"device-type"' '"AHCI Controller"'
       _setDeviceProp '"name"' '"Intel AHCI Controller"'
-      _setDeviceProp '"model"' '"Intel 99 Series Chipset Family SATA Controller"'
+      if [[ "$moboID" = "Z170" ]];
+        then
+          _setDeviceProp '"model"' '"Intel 10 Series Chipset Family SATA Controller"'
+        else
+          _setDeviceProp '"model"' '"Intel 99 Series Chipset Family SATA Controller"'
+      fi
+
       _findDeviceProp 'compatible' 'IOName'
       _findDeviceProp 'device-id'
       _close_Brackets
   fi
 
-  if [[ "$SSDT" == "SMBS" ]];
+  if [ "$SSDT" == "SMBS" ] || [ "$SSDT" == "SBUS" ];
     then
-      # ****need to switch SBUS to SMBS ****
-      _findDevice_Address $SSDT
-      #_findDevice_Address SBUS
+      if [[ "$moboID" = "Z170" ]];
+        then
+          _findDevice_Address "${SSDT}" "SMBS"
+        else
+          # ****need to switch SBUS to SMBS ****
+          #_findDevice_Address SBUS
+          _findDevice_Address "${SSDT}" "SBUS"
+      fi
       _setDevice_Status
   fi
 
@@ -758,7 +806,12 @@ function _buildSSDT()
       _getExtDevice_Address $SSDT
       _setDeviceProp '"AAPL,slot-name"' '"Built In"'
       _setDeviceProp '"name"' '"Intel XHC Controller"'
-      _setDeviceProp '"model"' '"Intel 99 Series Chipset Family USB xHC Host Controller"'
+      if [[ "$moboID" = "Z170" ]];
+        then
+          _setDeviceProp '"model"' '"Intel 10 Series Chipset Family USB xHC Host Controller"'
+        else
+          _setDeviceProp '"model"' '"Intel 99 Series Chipset Family USB xHC Host Controller"'
+      fi
       _setDevice_NoBuffer '"AAPL,current-available"' '0x0834'
       _setDevice_NoBuffer '"AAPL,current-extra"' '0x0A8C'
       _setDevice_NoBuffer '"AAPL,current-in-sleep"' '0x0A8C'
@@ -814,24 +867,24 @@ function _printHeader()
   printf 'Creating: '${gSSDTID}'.dsl \n'
   gSSDT="${gPath}/${gSSDTID}.dsl"
 
-  echo '/*'                                                                               >  "$gSSDT"
-  echo ' * Intel ACPI Component Architecture'                                             >> "$gSSDT"
-  echo ' * AML/ASL+ Disassembler version 20161222-64(RM)'                                 >> "$gSSDT"
-  echo ' * Copyright (c) 2000 - 2017 Intel Corporation'                                   >> "$gSSDT"
-  echo ' * '                                                                              >> "$gSSDT"
-  echo ' * Original Table Header:'                                                        >> "$gSSDT"
-  echo ' *     Signature        "SSDT"'                                                   >> "$gSSDT"
-  echo ' *     Length           '${gTableLength[$gCount]}''                               >> "$gSSDT"
-  echo ' *     Revision         0x01'                                                     >> "$gSSDT"
-  echo ' *     Checksum         '${gTableChecksum[$gCount]}''                             >> "$gSSDT"
-  echo ' *     OEM ID           "mfc88"'                                                  >> "$gSSDT"
-  echo ' *     OEM Table ID     "'${gTableID[$gCount]}'"'                                 >> "$gSSDT"
-  echo ' *     OEM Revision     0x00000000 (0)'                                           >> "$gSSDT"
-  echo ' *     Compiler ID      "INTL"'                                                   >> "$gSSDT"
-  echo ' *     Compiler Version 0x20160422 (538313762)'                                   >> "$gSSDT"
-  echo ' */'                                                                              >> "$gSSDT"
-  echo ''                                                                                 >> "$gSSDT"
-  echo 'DefinitionBlock ("", "SSDT", 1, "mfc88", "'${gTableID[$gCount]}'", 0x00000000)'   >> "$gSSDT"
+  # echo '/*'                                                                               >  "$gSSDT"
+  # echo ' * Intel ACPI Component Architecture'                                             >> "$gSSDT"
+  # echo ' * AML/ASL+ Disassembler version 20161222-64(RM)'                                 >> "$gSSDT"
+  # echo ' * Copyright (c) 2000 - 2017 Intel Corporation'                                   >> "$gSSDT"
+  # echo ' * '                                                                              >> "$gSSDT"
+  # echo ' * Original Table Header:'                                                        >> "$gSSDT"
+  # echo ' *     Signature        "SSDT"'                                                   >> "$gSSDT"
+  # echo ' *     Length           '${gTableLength[$gCount]}''                               >> "$gSSDT"
+  # echo ' *     Revision         0x01'                                                     >> "$gSSDT"
+  # echo ' *     Checksum         '${gTableChecksum[$gCount]}''                             >> "$gSSDT"
+  # echo ' *     OEM ID           "mfc88"'                                                  >> "$gSSDT"
+  # echo ' *     OEM Table ID     "'${gTableID[$gCount]}'"'                                 >> "$gSSDT"
+  # echo ' *     OEM Revision     0x00000000 (0)'                                           >> "$gSSDT"
+  # echo ' *     Compiler ID      "INTL"'                                                   >> "$gSSDT"
+  # echo ' *     Compiler Version 0x20160422 (538313762)'                                   >> "$gSSDT"
+  # echo ' */'                                                                              >> "$gSSDT"
+  # echo ''                                                                                 >> "$gSSDT"
+  echo 'DefinitionBlock ("", "SSDT", 1, "mfc88", "'${gTableID[$gCount]}'", 0x00000000)'   > "$gSSDT"
   echo '{'                                                                                >> "$gSSDT"
   _buildSSDT ${gTableID[$gCount]}
   _compileSSDT
@@ -913,10 +966,20 @@ function _user_choices()
 ##==============================================================================##
 function greet()
 {
-  printf '            ssdtGen Version 0.0.9b - Copyright (c) 2017 by M.F.C.'
+  printf '            ssdtGen Version 0.1.0b - Copyright (c) 2017 by M.F.C.'
   printf  "\n%s" '--------------------------------------------------------------------------------'
   printf ' \n'
   sleep 0.25
+}
+
+#===============================================================================##
+## FIND USER'S MOTHERBOARD #
+##==============================================================================##
+function _findMoboID()
+{
+  mobo=$1
+  #moboID=$(ioreg -n FakeSMCKeyStore -k product-name | grep product-name | sed -e 's/ *["|=:/_@-]//g; s/productname//g' | grep -o $mobo)
+  moboID=$(ioreg -lw0 -p IODeviceTree | awk '/OEMBoard/ {print $4}' | grep -o $mobo)
 }
 
 #===============================================================================##
@@ -924,13 +987,43 @@ function greet()
 ##==============================================================================##
 function _checkBoard
 {
-  moboID=$(ioreg -lw0 -p IODeviceTree | awk '/OEMBoard/ {print $4}' | tr -d '<"">')
-  moboID=${moboID:0:3}
-
-  if [[ "$moboID" != "X99" ]];
+  _findMoboID "X99"
+  if [ -z "$moboID" ];
     then
+    _findMoboID "Z170"
+  fi
+
+  if [[ "$moboID" = "X99" ]];
+    then
+      gTableID=(
+      [0]='ALZA'
+      [1]='EVSS'
+      [2]='GFX1'
+      [3]='GLAN'
+      [4]='HECI'
+      [5]='LPC0'
+      [6]='SAT1'
+      [7]='SMBS'
+      [8]='XHC'
+      [9]='XOSI'
+      )
+    elif [[ "$moboID" = "Z170" ]];
+      then
+      gTableID=(
+      [0]='EVSS'
+      [1]='GLAN'
+      [2]='GFX1'
+      [3]='HDAS'
+      [4]='HECI'
+      [5]='LPCB'
+      [6]='SAT0'
+      [7]='SBUS'
+      [8]='XHC'
+      [9]='XOSI'
+      )
+  else
     printf "\n"
-    printf "${bold}*—-ERROR—-*${normal} This script only supports X99 motherboards at the moment!\n"
+    printf "${bold}*—-ERROR—-*${normal} This script only supports X99/Z170 motherboards at the moment!\n"
     printf "\n"
     sleep 1
     printf "Script was aborted!\033[0K\r\n"

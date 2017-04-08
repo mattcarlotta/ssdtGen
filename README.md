@@ -1,8 +1,8 @@
-# ssdtGen 0.0.9beta
+# ssdtGen 0.1.0beta
 
 Introduction
 
-ssdtGen is an automated bash script that attempts to build and compile SSDTs for X99 systems running Mac OS.
+ssdtGen is an automated bash script that attempts to build and compile SSDTs for X99/Z170 systems running Mac OS.
 
 You can download the latest version of ssdtGen to your Desktop by entering the following commands in a terminal window:
 ```
@@ -35,7 +35,7 @@ Commands:
 **Special notes:
 DSDT ACPI tables must be vanilla(†). If any devices are renamed, forget about it. Won't work.
 
-* This script (as of now) only supports x99 systems.
+* This script (as of now) only supports x99/z170 systems.
 * This script will install IASL to the usr/local/bin directory if it's missing from usr/bin or usr/local/bin
 * This script is in beta testing. If you don't want to test something experimental, DO-NOT-USE-IT!
 * If a SSDT-xxxx.aml fails to compile, then it won't be saved. Check the terminal output for errors.
