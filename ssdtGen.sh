@@ -691,6 +691,7 @@ function _buildSSDT()
       _close_Brackets
       _findAUDIO
       _setDeviceProp '"hda-gfx"' '"onboard-2"'
+      _setDeviceProp '"PinConfigurations"' '0xe0, 0x00, 0x56, 0x28'
       _findDeviceProp 'device-id'
       _close_Brackets
       _setGPUDevice_Status
