@@ -66,72 +66,6 @@ normal=$(tput sgr0)
 #SSDT Table-ID array
 gTableID=""
 
-# gX99=(
-# [0]='ALZA'
-# [1]='EVSS'
-# [2]='GFX1'
-# [3]='GLAN'
-# [4]='HECI'
-# [5]='LPC0'
-# [6]='SAT1'
-# [7]='SMBS'
-# [8]='XHC'
-# [9]='XOSI'
-# )
-
-# gZ170=(
-# [0]='EVSS'
-# [1]='GLAN'
-# [2]='GFX1'
-# [3]='HDAS'
-# [4]='HECI'
-# [5]='LPCB'
-# [6]='SAT0'
-# [7]='SBUS'
-# [8]='XHC'
-# [9]='XOSI'
-# )
-
-#SSDT Table Length array
-# gTableLength=(
-# [0]="0x000000ED (237)"
-# [1]="0x0000013A (314)"
-# [2]="0x0000037C (892)"
-# [3]="0x000000E6 (230)"
-# [4]="0x000000FE (254)"
-# [5]="0x00000078 (120)"
-# [6]="0x00000138 (312)"
-# [7]="0x000000B6 (182)"
-# [8]="0x0000016F (367)"
-# [9]="0x000000B0 (176)"
-# )
-
-#SSDT Table Checksum array
-# gTableChecksum=(
-# [0]='0xBC'
-# [1]='0x02'
-# [2]='0x89'
-# [3]='0x53'
-# [4]='0x78'
-# [5]='0x11'
-# [6]='0x9E'
-# [7]='0x7F'
-# [8]='0xF4'
-# [9]='0xA2'
-# )
-
-
-# 0 ALZA, Length  0x000000ED (237), Checksum 0xBC, Device
-# 1 EVSS, Length  0x0000013A (314), Checksum 0x02, _DSM
-# 2 GFX1, Length  0x0000037C (892), Checksum 0x89, Device
-# 3 GLAN, Length  0x000000E6 (230), Checksum 0x53, _DSM
-# 4 HECI, Length  0x000000FE (254), Checksum 0x78, Device
-# 5 LCP0, Length  0x00000078 (120), Checksum 0x11, _DSM
-# 6 SAT1, Length  0x00000138 (312), Checksum 0x9E, _DSM
-# 7 SMBS, Length  0x000000B6 (182), Checksum 0x7F, Device
-# 8 XHC,  Length  0x0000016F (367), Checksum 0xF4, _DSM
-# 9 XOSI,Length  0x000000B0 (176), Checksum 0xA2, Special
-
 #===============================================================================##
 ## USER ABORTS SCRIPT #
 ##==============================================================================##
@@ -867,23 +801,6 @@ function _printHeader()
   printf 'Creating: '${gSSDTID}'.dsl \n'
   gSSDT="${gPath}/${gSSDTID}.dsl"
 
-  # echo '/*'                                                                               >  "$gSSDT"
-  # echo ' * Intel ACPI Component Architecture'                                             >> "$gSSDT"
-  # echo ' * AML/ASL+ Disassembler version 20161222-64(RM)'                                 >> "$gSSDT"
-  # echo ' * Copyright (c) 2000 - 2017 Intel Corporation'                                   >> "$gSSDT"
-  # echo ' * '                                                                              >> "$gSSDT"
-  # echo ' * Original Table Header:'                                                        >> "$gSSDT"
-  # echo ' *     Signature        "SSDT"'                                                   >> "$gSSDT"
-  # echo ' *     Length           '${gTableLength[$gCount]}''                               >> "$gSSDT"
-  # echo ' *     Revision         0x01'                                                     >> "$gSSDT"
-  # echo ' *     Checksum         '${gTableChecksum[$gCount]}''                             >> "$gSSDT"
-  # echo ' *     OEM ID           "mfc88"'                                                  >> "$gSSDT"
-  # echo ' *     OEM Table ID     "'${gTableID[$gCount]}'"'                                 >> "$gSSDT"
-  # echo ' *     OEM Revision     0x00000000 (0)'                                           >> "$gSSDT"
-  # echo ' *     Compiler ID      "INTL"'                                                   >> "$gSSDT"
-  # echo ' *     Compiler Version 0x20160422 (538313762)'                                   >> "$gSSDT"
-  # echo ' */'                                                                              >> "$gSSDT"
-  # echo ''                                                                                 >> "$gSSDT"
   echo 'DefinitionBlock ("", "SSDT", 1, "mfc88", "'${gTableID[$gCount]}'", 0x00000000)'   > "$gSSDT"
   echo '{'                                                                                >> "$gSSDT"
   _buildSSDT ${gTableID[$gCount]}
