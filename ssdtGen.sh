@@ -102,7 +102,7 @@ function display_instructions()
   printf "       - ${bold}GLAN${normal}: Adds x99/z170 support for an Intel ethernet controller\n"
   printf "       - ${bold}HECI${normal}: Intel Management Engine Interface that, in general, adds support for various tasks\n"
   printf "           while the system is booting, running or sleeping\n"
-  printf "       - ${bold}NVME${normal}: Adds x99/z170 support for an NVMe drive (MUST be used in conjuction with Rehabman's\n"
+  printf "       - ${bold}NVME${normal}: Adds x99/z170 support for a single NVMe drive (MUST be used in conjuction with Rehabman's\n"
   printf "           spoofed HackrNVMeFamily-10_xx_x.kext)\n"
   printf "       - ${bold}LPC0/LPCB${normal}: Adds x99/z170 support to AppleLPC.kext for Low Pin Count devices to connect\n"
   printf "          to the CPU\n"
