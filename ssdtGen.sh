@@ -2,7 +2,7 @@
 #
 # Script (ssdtGen.sh) to create SSDTs for Mac OS.
 #
-# Version 0.1.0beta - Copyright (c) 2017 by M.F.C.
+# Version 0.1.1beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
@@ -66,6 +66,9 @@ normal=$(tput sgr0)
 #SSDT Table-ID array
 gTableID=""
 
+cr=`echo $'\n.'`
+cr=${cr%.}
+
 #===============================================================================##
 ## USER ABORTS SCRIPT #
 ##==============================================================================##
@@ -85,32 +88,32 @@ function _clean_up()
 function display_instructions()
 {
   printf "\n"
-  printf "To build and compile all SSDTS, input ${bold}-ba${normal} or ${bold}-BA${normal}\n"
+  printf "To build and compile all SSDTS, input ${bold}buildall${normal} or ${bold}BUILDALL${normal}\n"
   printf "\n"
-  printf "To build and compile one SSDT, input ${bold}-b NAME${normal} or ${bold}-B NAME${normal}:\n"
+  printf "To build and compile one SSDT, input ${bold}build NAME${normal} or ${bold}BUILD NAME${normal}:\n"
   printf "\n"
   printf "         ${bold}x99/z170${normal}\n"
   printf "         ${bold}---------${normal}\n"
   printf "       - ${bold}ALZA/HDAS${normal}: Adds x99/z170 support for Realtek on-board sound\n"
-  printf "       - ${bold}EVSS${normal}: Adds x99 support for a third PCH sSata controller for IDE, AHCI,\n"
-  printf "          RAID storage drives (up to 6Gb/s transfers) \n"
-  printf "       - ${bold}GFX1${normal}: Adds x99/z170 support for a single Nvidia graphics card and\n"
-  printf "          adds HDMI audio support for the card as well \n"
+  printf "       - ${bold}EVSS${normal}: Adds x99 support for a third PCH sSata controller for IDE, AHCI, RAID storage drives\n"
+  printf "          (for up to 6Gb/s transfers)\n"
+  printf "       - ${bold}GFX1${normal}: Adds x99/z170 support for a single Nvidia graphics card and adds HDMI audio support\n"
+  printf "          for the card as well \n"
   printf "       - ${bold}GLAN${normal}: Adds x99/z170 support for an Intel ethernet controller\n"
-  printf "       - ${bold}HECI${normal}: Intel Management Engine Interface that, in general,\n"
-  printf "          adds support for various tasks while the system is booting, running \n"
-  printf "          or sleeping \n"
-  printf "       - ${bold}LPC0/LPCB${normal}: Adds x99/z170 support to AppleLPC.kext for Low Pin Count\n"
-  printf "          devices to connect to the CPU\n"
-  printf "       - ${bold}SAT1/SAT0${normal}: Adds x99/z170 support for the PCH SATA controller for SATA\n"
-  printf "          devices via Legacy or AHCI mode (up to 6Gb/s transfers)\n"
-  printf "       - ${bold}SMBS/SBUS${normal}: Adds x99/z170 support for a SMBus controller that allows\n"
-  printf "          communication between separate hardware devices and adds I2C support\n"
-  printf "          for temperatures, fan, voltage, and battery sensors)\n"
+  printf "       - ${bold}HECI${normal}: Intel Management Engine Interface that, in general, adds support for various tasks\n"
+  printf "           while the system is booting, running or sleeping\n"
+  printf "       - ${bold}NVME${normal}: Adds x99/z170 support for an NVMe drive (MUST be used in conjuction with Rehabman's\n"
+  printf "           spoofed HackrNVMeFamily-10_xx_x.kext)\n"
+  printf "       - ${bold}LPC0/LPCB${normal}: Adds x99/z170 support to AppleLPC.kext for Low Pin Count devices to connect\n"
+  printf "          to the CPU\n"
+  printf "       - ${bold}SAT1/SAT0${normal}: Adds x99/z170 support for the PCH SATA controller for SATA devices via Legacy\n"
+  printf "          or AHCI mode (for up to 6Gb/s transfers)\n"
+  printf "       - ${bold}SMBS/SBUS${normal}: Adds x99/z170 support for a SMBus controller that allows communication between\n"
+  printf "          external hardware devices (for example, Apple's Mikey driver)\n"
   printf "       - ${bold}XHC${normal}: Adds power options for the USB xHC Host Controller\n"
   printf "       - ${bold}XOSI${normal}: Adds Windows simulated support for DSDT OSI_ methods\n"
   printf "\n"
-  printf "To debug the script, input ${bold}-d${normal} or ${bold}-D${normal}:\n"
+  printf "To debug the script, input ${bold}debug${normal} or ${bold}DEBUG${normal}:\n"
   printf "       - Will automatically attempt to build and compile all SSDTS while\n"
   printf "          generating a debug ouput.txt file to the Desktop\n"
   printf "\n"
@@ -132,7 +135,7 @@ function display_instructions()
         printf "${bold}*—-ERROR—-*${normal} That was not a valid option, please try again!\n"
       ;;
     esac
-done
+  done
 }
 
 
@@ -258,7 +261,7 @@ function _findDeviceProp()
     then
       if [[ "$PROP2" == 'GPU' ]];
         then
-          SSDT_VALUE=$(ioreg -lw0 -p IODeviceTree -n "$PCISLOT" -r | awk '/device-id/' | tail -n +4 | sed -e 's/ *[",|=:/_@<>-]//g; s/deviceid//g')
+          SSDT_VALUE=$(ioreg -lw0 -p IODeviceTree -n $PCISLOT -r | grep device-id | tail -n 1 | sed -e 's/ *[",|=:/_@<>-]//g; s/deviceid//g')
         else
           SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP2 | grep $PROP2 |  sed -e 's/ *["|=:/_@]//g; s/'$PROP2'//g')
       fi
@@ -690,6 +693,14 @@ function _buildSSDT()
       _setDevice_Status
   fi
 
+  if [[ "$SSDT" == "NVME" ]];
+    then
+      _getExtDevice_Address "${NVME_ACPI_PATH}"
+      _setDeviceProp '"class-code"' '0xFF, 0x08, 0x01, 0x00'
+      _setDeviceProp '"built-in"' '0x00'
+      _close_Brackets
+  fi
+
   if [ "$SSDT" == "LPC0" ] || [ "$SSDT" == "LCPB" ];
     then
       _getExtDevice_Address $SSDT
@@ -810,13 +821,58 @@ function _printHeader()
 ##===============================================================================##
 # CHECK USER CHOICES TO SSDT LIST #
 ##===============================================================================##
-function _checkIfExists()
+function _checkIf_PATH_Exists()
+{
+  IOREGPATH=$(ioreg -p IODeviceTree -n "$DEVICE" -r | grep -o $LEAFNODE)
+  if [ -z "$IOREGPATH" ]
+    then
+      echo ''
+      echo "${bold}*—-ERROR—-*${normal} There was a problem locating $DEVICE's leafnode ($LEAFNODE)!"
+      echo "Please make sure the ACPI Path submitted is correct!"
+      _askforNVMEPATH
+  fi
+}
+
+##===============================================================================##
+# ASK USER WHERE NVME IS LOCATED #
+##===============================================================================##
+function _askforNVMEPATH()
+{
+  echo ''
+  read -p "What is your NVME's ACPI path (for example, BR1B.H000 or RP04.PSXS)? $cr--> " choice
+    case "$choice" in
+      exit|EXIT )
+      _clean_up
+      ;;
+      * )
+      NVME_ACPI_PATH=$choice
+      DEVICE=${choice:0:4}
+      LEAFNODE=${choice:5:4}
+      _checkIf_PATH_Exists
+      echo ''
+      gCount=$i
+      _printHeader
+      ;;
+  esac
+}
+
+##===============================================================================##
+# CHECK USER CHOICES TO SSDT LIST #
+##===============================================================================##
+function _checkIf_SSDT_Exists()
 {
   for((i=0;i<=10;i++))
   do
   if [[ "${buildOne}" == "${gTableID[$i]}" ]];
     then
+    if [[ "${buildOne}" == "NVME" ]];
+      then
+        gCount=$i
+        _askforNVMEPATH
+        exit 0
+    fi
     gCount=$i
+    echo ''
     _printHeader
     exit 0
   fi
@@ -832,25 +888,22 @@ function _checkIfExists()
 ##===============================================================================##
 function _user_choices()
 {
-  cr=`echo $'\n.'`
-  cr=${cr%.}
-
   echo ''
-  read -p "build all(${bold}-ba${normal}) | build a single SSDT(${bold}-b NAME${normal}) | debug(${bold}-d${normal}) | help(${bold}-h${normal}) | exit(${bold}-e${normal}) $cr" choice
+  read -p "build all SSDTs(${bold}buildall${normal}) | build a single SSDT(${bold}build NAME${normal}) | debug(${bold}debug${normal}) | help(${bold}help${normal}) | exit(${bold}exit${normal}) $cr--> " choice
     case "$choice" in
       # attempt to build all SSDTs
-      -ba|-BA )
+      buildall|BUILDALL )
       main true
       exit 0
       ;;
       # attempt to build one SSDT
-      -b* | -B*)
-      buildOne=${choice:3:5}
-       _checkIfExists
-       exit
+      build* | BUILD*)
+      buildOne=${choice:6:9}
+      _checkIf_SSDT_Exists
+      exit 0
       ;;
       # debug mode
-      -d|-D )
+      debug|DEBUG )
       set -x
       main true 2>&1 | tee "$dPath"
       ioreg >> "$dPath"
@@ -858,11 +911,11 @@ function _user_choices()
       exit 0
       ;;
       # display help instructions
-      -h|-H )
+      help|HELP )
       display_instructions
       ;;
       # kill the script
-      -e|-E )
+      exit|EXIT )
       printf "\n"
       printf "Script was aborted!\033[0K\r\n"
       printf "\n"
@@ -883,8 +936,8 @@ function _user_choices()
 ##==============================================================================##
 function greet()
 {
-  printf '            ssdtGen Version 0.1.0b - Copyright (c) 2017 by M.F.C.'
-  printf  "\n%s" '--------------------------------------------------------------------------------'
+  printf '                         ssdtGen Version 0.1.1b - Copyright (c) 2017 by M.F.C.'
+  printf  "\n%s" '-----------------------------------------------------------------------------------------------------'
   printf ' \n'
   sleep 0.25
 }
@@ -923,6 +976,7 @@ function _checkBoard
       [7]='SMBS'
       [8]='XHC'
       [9]='XOSI'
+      [10]='NVME'
       )
     elif [[ "$moboID" = "Z170" ]];
       then
@@ -937,6 +991,7 @@ function _checkBoard
       [7]='SBUS'
       [8]='XHC'
       [9]='XOSI'
+      [10]='NVME'
       )
   else
     printf "\n"
@@ -967,6 +1022,8 @@ function main()
   _checkPreInstalled
   _printHeader
 }
+
+printf '\e[8;30;102t'
 
 trap '{ _clean_up; exit 1; }' INT
 
