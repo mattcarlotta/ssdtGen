@@ -23,11 +23,11 @@ Lastly, use this command to run the script:
 
 Commands:
 ```
--ba (will attempt to build all SSDTs)
--b NAME (will attempt to build a single SSDT)
--d (will attempt to build all SSDTS while generating a debug_output.txt file)
--h (will display help instructions)
--e (will exit the script)
+buildall (will attempt to build all SSDTs)
+build NAME (will attempt to build a single SSDT)
+debug (will attempt to build all SSDTS while generating a debug_output.txt file)
+help (will display help instructions)
+exit (will exit the script)
 ```
 
 --------------------------------------------------------------------------------------------------------------
