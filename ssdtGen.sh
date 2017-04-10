@@ -383,6 +383,7 @@ function _findAUDIO()
 
   echo '    Device ('${gSSDTPath}'.'${PCISLOT}'.'${SSDT}')'                               >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
+  echo '        Name (_SUN, One)  // _SUN: Slot User Number'                              >> "$gSSDT"
   echo '        Name (_ADR, Zero)  // _ADR: Address'                                      >> "$gSSDT"
   _getDSM
 
