@@ -66,21 +66,47 @@ normal=$(tput sgr0)
 #SSDT Table-ID array
 gTableID=""
 
+gMoboID=('X99' 'Z170' 'MAXIMUS')
+
 #carriage return
 cr=`echo $'\n.'`
 cr=${cr%.}
+
+# set Terminal window size
+printf '\e[8;30;102t'
+
+# if user ctrl+c, then cleanup
+trap '{ _clean_up; exit 1; }' INT
+
+#===============================================================================##
+## PRINT CLEANUP DOTS #
+##==============================================================================##
+function _printDots()
+{
+  local let dots=0
+
+  while [[ $dots -lt 3 ]]
+  do
+    ((dots++))
+    sleep 0.150
+    printf "."
+  done
+
+ sleep 0.200
+}
 
 #===============================================================================##
 ## USER ABORTS SCRIPT #
 ##==============================================================================##
 function _clean_up()
 {
-  printf "Cleaning up any left-overs..."
-  rm "${gPath}"/*.dsl 2> /dev/null
-  sleep 1
-  printf "Script was aborted!\033[0K\r\n"
-  exit 1
   clear
+  printf "Cleaning up any left-overs"
+  _printDots
+  rm "${gPath}"/*.dsl 2> /dev/null
+  clear
+  printf "Script was aborted!\033[0K\r\n"
+  exit -0
 }
 
 #===============================================================================##
@@ -219,16 +245,16 @@ function _close_Brackets()
   local MB=$1
   if [ "$MB" = true ];
     then
-    echo '        }'                                                                        >> "$gSSDT"
-    echo '    }'                                                                            >> "$gSSDT"
+    echo '        }'                                                                      >> "$gSSDT"
+    echo '    }'                                                                          >> "$gSSDT"
     if [ ! -z "$BRIDGEADDRESS" ];
       then
-        echo '    }'                                                                            >> "$gSSDT"
+        echo '    }'                                                                      >> "$gSSDT"
     fi
   else
-    echo '            })'                                                                   >> "$gSSDT"
-    echo '        }'                                                                        >> "$gSSDT"
-    echo '    }'                                                                            >> "$gSSDT"
+    echo '            })'                                                                 >> "$gSSDT"
+    echo '        }'                                                                      >> "$gSSDT"
+    echo '    }'                                                                          >> "$gSSDT"
   fi
 }
 
@@ -553,7 +579,7 @@ function _findDevice_Address()
 ##==============================================================================##
 function _getExtDevice_NVME
 {
-  # BR1B
+  # DEVICE (BR1B)
   echo '    External ('${gExtDSDTPath}'.'${NVMEDEVICE}', DeviceObj)'                      >> "$gSSDT"
   FOUNDD0xx=$(ioreg -p IODeviceTree -n "$NVMEDEVICE" -r | grep D0 | sed -e 's/ *["+|=<a-z>:/_@-]//g; s/^ *//g' | cut -c1-4 | sed '$!N;s/\n/ /')
 
@@ -578,10 +604,10 @@ function _getExtDevice_NVME
 
   if [ -z "$INCOMPLETENVMEPATH" ];
     then
-      #NVME IS HAS COMPLETE ACPI
-      echo '            Name (_ADR, Zero)'                                                 >> "$gSSDT"
+      #NVME HAS COMPLETE ACPI
+      echo '            Name (_ADR, Zero)'                                                >> "$gSSDT"
     else
-      #NVME IS HAS INCOMPLETE ACPI
+      #NVME HAS INCOMPLETE ACPI
         echo '            Name (_ADR, '$NVME_ACPI_ADRESSS')'                              >> "$gSSDT"
   fi
 
@@ -602,7 +628,7 @@ function _getExtDevice_Address()
 {
   DEVICE=$1
 
-  echo '    External ('${gExtDSDTPath}'.'${DEVICE}', DeviceObj)'                      >> "$gSSDT"
+  echo '    External ('${gExtDSDTPath}'.'${DEVICE}', DeviceObj)'                          >> "$gSSDT"
   echo '    Method ('${gSSDTPath}'.'${DEVICE}'._DSM, 4, NotSerialized)'                   >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
   _getDSM true
@@ -833,7 +859,6 @@ function _compileSSDT
   fi
 }
 
-
 ##===============================================================================##
 # PRINT FILE HEADER #
 ##===============================================================================##
@@ -878,6 +903,9 @@ function _checkIf_PATH_Exists()
   fi
 }
 
+##===============================================================================##
+# CHECK IF USER SPECIFIED ADDRESSES ARE IN CORRECT FORMAT #
+##===============================================================================##
 function _checkIf_VALIDADRESS()
 {
   BR=$1
@@ -1048,10 +1076,7 @@ function _user_choices()
       ;;
       # kill the script
       exit|EXIT )
-      printf "\n"
-      printf "Script was aborted!\033[0K\r\n"
-      printf "\n"
-      exit 0
+      _clean_up
       ;;
       # oops - user made a mistake, reload script
       * )
@@ -1079,26 +1104,29 @@ function greet()
 ##==============================================================================##
 function _findMoboID()
 {
-  mobo=$1
   #moboID=$(ioreg -n FakeSMCKeyStore -k product-name | grep product-name | sed -e 's/ *["|=:/_@-]//g; s/productname//g' | grep -o $mobo)
-  moboID=$(ioreg -lw0 -p IODeviceTree | awk '/OEMBoard/ {print $4}' | grep -o $mobo)
+  moboID=$(ioreg -lw0 -p IODeviceTree | awk '/OEMBoard/ {print $4}' | grep -o ${gMoboID[$i]})
 }
 
 #===============================================================================##
-## CHECK USER'S MOTHERBOARD #
+## CHECK TO SEE IF USER'S MOTHERBOARD IS SUPPORTED #
 ##==============================================================================##
 function _checkBoard
 {
-  _findMoboID "X99"
-  if [ -z "$moboID" ];
-    then
-    _findMoboID "Z170"
-  fi
+  for((i=0;i<=${#gMoboID[@]};i++))
+  do
+    _findMoboID
+    if [ ! -z "$moboID" ];
+      then
+        echo "User has a $moboID board!"  > /dev/null 2>&1
+        break
+    fi
+  done
 
   if [[ "$moboID" = "X99" ]];
     then
       gTableID=('ALZA' 'EVSS' 'GFX1' 'GLAN' 'HECI' 'LPC0' 'SAT1' 'SMBS' 'XHC' 'XOSI' 'NVME')
-    elif [[ "$moboID" = "Z170" ]];
+    elif [[ "$moboID" = "Z170" ]] || [[ "$moboID" = "MAXIMUS" ]];
       then
       gTableID=('EVSS' 'GLAN' 'GFX1' 'HDAS' 'HECI' 'LPCB' 'SAT0' 'SBUS' 'XHC' 'XOSI' 'NVME')
   else
@@ -1129,12 +1157,6 @@ function main()
   _checkPreInstalled
   _printHeader
 }
-
-# set Terminal window size
-printf '\e[8;30;102t'
-
-# if user ctrl+c, then cleanup
-trap '{ _clean_up; exit 1; }' INT
 
 if [[ `id -u` -ne 0 ]];
   then
