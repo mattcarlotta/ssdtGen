@@ -221,6 +221,10 @@ function _close_Brackets()
     then
     echo '        }'                                                                        >> "$gSSDT"
     echo '    }'                                                                            >> "$gSSDT"
+    if [ ! -z "$BRIDGEADDRESS" ];
+      then
+        echo '    }'                                                                            >> "$gSSDT"
+    fi
   else
     echo '            })'                                                                   >> "$gSSDT"
     echo '        }'                                                                        >> "$gSSDT"
@@ -550,25 +554,44 @@ function _findDevice_Address()
 function _getExtDevice_NVME
 {
   # BR1B
-  echo '    External ('${gExtDSDTPath}'.'${NVMEDEVICE}', DeviceObj)'                          >> "$gSSDT"
+  echo '    External ('${gExtDSDTPath}'.'${NVMEDEVICE}', DeviceObj)'                      >> "$gSSDT"
   FOUNDD0xx=$(ioreg -p IODeviceTree -n "$NVMEDEVICE" -r | grep D0 | sed -e 's/ *["+|=<a-z>:/_@-]//g; s/^ *//g' | cut -c1-4 | sed '$!N;s/\n/ /')
-  #BR1B.H000, BR1B.D075, BR1B.D081
-  extDEVICES=($NVMELEAFNODE $FOUNDD0xx)
+
+  if [ -z "$INCOMPLETENVMEPATH" ];
+    then
+      #BR1B.H000, BR1B.D075, BR1B.D081
+      extDEVICES=($NVMELEAFNODE $FOUNDD0xx)
+    else
+      extDEVICES=($FOUNDD0xx)
+  fi
 
   for((i=0;i<${#extDEVICES[@]};i++))
   do
-    if [ ! -z "${extDEVICES[$i]}" ];
-    then
-      echo '    External ('${gExtDSDTPath}'.'${NVMEDEVICE}'.'${extDEVICES[$i]}', DeviceObj)'    >> "$gSSDT"
-      echo '    Scope ('${gExtDSDTPath}'.'${NVMEDEVICE}'.'${extDEVICES[$i]}')'      >> "$gSSDT"
-      echo '    {Name (_STA, Zero)}'      >> "$gSSDT"
-    fi
+    echo '    External ('${gExtDSDTPath}'.'${NVMEDEVICE}'.'${extDEVICES[$i]}', DeviceObj)'>> "$gSSDT"
+    echo '    Scope ('${gExtDSDTPath}'.'${NVMEDEVICE}'.'${extDEVICES[$i]}')'              >> "$gSSDT"
+    echo '    {Name (_STA, Zero)}'      >> "$gSSDT"
   done
-  echo '    Scope ('${gExtDSDTPath}'.'${NVMEDEVICE}')'                          >> "$gSSDT"
+  echo '    Scope ('${gExtDSDTPath}'.'${NVMEDEVICE}')'                                    >> "$gSSDT"
   echo '    {'                          >> "$gSSDT"
-  echo '        Device (NVME)'                          >> "$gSSDT"
-  echo '        {'                          >> "$gSSDT"
-  echo '            Name (_ADR, Zero)'                          >> "$gSSDT"
+  echo '        Device (NVME)'                                                            >> "$gSSDT"
+  echo '        {'                                                                        >> "$gSSDT"
+
+  if [ -z "$INCOMPLETENVMEPATH" ];
+    then
+      #NVME IS HAS COMPLETE ACPI
+      echo '            Name (_ADR, Zero)'                                                 >> "$gSSDT"
+    else
+      #NVME IS HAS INCOMPLETE ACPI
+        echo '            Name (_ADR, '$NVME_ACPI_ADRESSS')'                              >> "$gSSDT"
+  fi
+
+  if [ ! -z "$BRIDGEADDRESS" ]
+    then
+    echo '        Device (PCIB)'                                                          >> "$gSSDT"
+    echo '        {'                                                                      >> "$gSSDT"
+    echo '            Name (_ADR, '$BRIDGEADDRESS')'                                      >> "$gSSDT"
+  fi
+
   _getDSM
 }
 
@@ -831,23 +854,90 @@ function _printHeader()
 ##===============================================================================##
 function _checkIf_PATH_Exists()
 {
-  IOREGPATH=$(ioreg -p IODeviceTree -n "$NVMEDEVICE" -r | grep -o $NVMELEAFNODE)
+  if [ ! -z "$INCOMPLETENVMEPATH" ];
+    then
+      IOREGPATH=$(ioreg -p IODeviceTree -n "$NVMEDEVICE" -r)
+    else
+      IOREGPATH=$(ioreg -p IODeviceTree -n "$NVMEDEVICE" -r | grep -o $NVMELEAFNODE)
+  fi
+
   if [ -z "$IOREGPATH" ]
     then
-      echo ''
-      echo "${bold}*—-ERROR—-*${normal} There was a problem locating $NVMEDEVICE's leafnode ($NVMELEAFNODE)!"
-      echo "Please make sure the ACPI Path submitted is correct!"
-      _askforNVMEPATH
+        if [ -z "$INCOMPLETENVMEPATH" ];
+        then
+          echo ''
+          echo "${bold}*—-ERROR—-*${normal} There was a problem locating $NVMEDEVICE's leafnode ($NVMELEAFNODE)!"
+          echo "Please make sure the ACPI path submitted is correct!"
+          _askfor_NVMEPATH
+        else
+          echo ''
+          echo "${bold}*—-ERROR—-*${normal} There was a problem locating $INCOMPLETENVMEPATH!"
+          echo "Please make sure the ACPI path submitted is correct!"
+          _askfor_INCOMPLETENVMEDETAILS
+    fi
   fi
+}
+
+function _checkIf_VALIDADRESS()
+{
+  BR=$1
+
+  if [ "$BR" == true ];
+    then
+      if [ -z "$BRIDGEADDRESS" ] || [[ "$BRIDGEADDRESS" != 0x* ]];
+        then
+        echo ''
+        echo "${bold}*—-ERROR—-*${normal} You must include a valid address! Try again"
+        _askfor_PCIBRIDGE
+      fi
+    else
+      if [ -z "$NVME_ACPI_ADRESSS" ] || [[ "$NVME_ACPI_ADRESSS" != 0x* ]];
+        then
+        echo ''
+        echo "${bold}*—-ERROR—-*${normal} You must include a valid address! Try again"
+        _askfor_INCOMPLETENVMEDETAILS
+      fi
+  fi
+}
+
+##===============================================================================##
+# ASK USER IF NVME IS BEHIND PCI BRIDGE #
+##===============================================================================##
+function _askfor_PCIBRIDGE()
+{
+  echo ''
+  while true; do
+  read -p "Is the NVME's path behind a PCI bridge? Write ${bold}yes${normal} followed by the PCI bridge address location ${bold}0x0000${normal}, othwerwise write ${bold}no${normal}. $cr--> " choice
+    case "$choice" in
+      exit|EXIT )
+      _clean_up
+      break
+      ;;
+      no|NO )
+      echo 'NVME isn/t behind a PCI bridge!' > /dev/null 2>&1
+      break
+      ;;
+      yes*|YES* )
+      BRIDGEADDRESS=${choice:4:10}
+      _checkIf_VALIDADRESS true
+      break
+      ;;
+      * )
+      echo ''
+      echo "${bold}*—-ERROR—-*${normal} Sorry, but $choice is not a valid option! Try again"
+      echo ''
+      ;;
+    esac
+  done
 }
 
 ##===============================================================================##
 # ASK USER WHERE NVME IS LOCATED #
 ##===============================================================================##
-function _askforNVMEPATH()
+function _askfor_NVMEPATH()
 {
   echo ''
-  read -p "What is your NVME's ACPI path (for example, BR1B.H000 or RP04.PSXS)? $cr--> " choice
+  read -p "What is the ACPI NVME's path? For example, write ${bold}BR1B.H000${normal}, or ${bold}RP04.PSXS${normal}, or ${bold}PEG0.PEGP${normal}, and so on. $cr--> " choice
     case "$choice" in
       exit|EXIT )
       _clean_up
@@ -856,6 +946,36 @@ function _askforNVMEPATH()
       NVME_ACPI_PATH=$choice
       NVMEDEVICE=${choice:0:4}
       NVMELEAFNODE=${choice:5:4}
+      _checkIf_PATH_Exists
+      _askfor_PCIBRIDGE
+      echo ''
+      gCount=$i
+      _printHeader
+      ;;
+  esac
+}
+
+##===============================================================================##
+# ASK USER IF NVME PATH IS COMPLETE #
+##===============================================================================##
+function _askfor_INCOMPLETENVMEDETAILS()
+{
+  echo ''
+  read -p "Is the NVME's ACPI path incomplete? If so, write the device and address. For example: ${bold}BR1B 0x0000${normal}, or ${bold}RP04 0x0000${normal}, or ${bold}PEG0 0x0000${normal}, and so on. Otherwise, just write ${bold}no${normal}. $cr--> " choice
+    case "$choice" in
+      exit|EXIT )
+      _clean_up
+      ;;
+      no|NO )
+      echo 'NVME/s ACPI path isn/t incomplete!' > /dev/null 2>&1
+      _askfor_NVMEPATH
+      ;;
+      * )
+      NVME_ACPI_PATH=${choice:0:4}
+      NVME_ACPI_ADRESSS=${choice:5:10}
+      INCOMPLETENVMEPATH=$NVME_ACPI_PATH
+      NVMEDEVICE=$NVME_ACPI_PATH
+      _checkIf_VALIDADRESS
       _checkIf_PATH_Exists
       echo ''
       gCount=$i
@@ -876,7 +996,7 @@ function _checkIf_SSDT_Exists()
     if [[ "${buildOne}" == "NVME" ]];
       then
         gCount=$i
-        _askforNVMEPATH
+        _askfor_INCOMPLETENVMEDETAILS
         exit 0
     fi
     gCount=$i
@@ -901,11 +1021,13 @@ function _user_choices()
     case "$choice" in
       # attempt to build all SSDTs
       buildall|BUILDALL )
+      _checkBoard
       main true
       exit 0
       ;;
       # attempt to build one SSDT
       build* | BUILD*)
+      _checkBoard
       buildOne=${choice:6:9}
       _checkIf_SSDT_Exists
       exit 0
@@ -913,7 +1035,9 @@ function _user_choices()
       # debug mode
       debug|DEBUG )
       set -x
-      main true 2>&1 | tee "$dPath"
+      #main true 2>&1 | tee "$dPath"
+      echo 'Now running in debug mode!'
+      _user_choices 2>&1 | tee "$dPath"
       ioreg >> "$dPath"
       set +x
       exit 0
@@ -973,34 +1097,10 @@ function _checkBoard
 
   if [[ "$moboID" = "X99" ]];
     then
-      gTableID=(
-      [0]='ALZA'
-      [1]='EVSS'
-      [2]='GFX1'
-      [3]='GLAN'
-      [4]='HECI'
-      [5]='LPC0'
-      [6]='SAT1'
-      [7]='SMBS'
-      [8]='XHC'
-      [9]='XOSI'
-      [10]='NVME'
-      )
+      gTableID=('ALZA' 'EVSS' 'GFX1' 'GLAN' 'HECI' 'LPC0' 'SAT1' 'SMBS' 'XHC' 'XOSI' 'NVME')
     elif [[ "$moboID" = "Z170" ]];
       then
-      gTableID=(
-      [0]='EVSS'
-      [1]='GLAN'
-      [2]='GFX1'
-      [3]='HDAS'
-      [4]='HECI'
-      [5]='LPCB'
-      [6]='SAT0'
-      [7]='SBUS'
-      [8]='XHC'
-      [9]='XOSI'
-      [10]='NVME'
-      )
+      gTableID=('EVSS' 'GLAN' 'GFX1' 'HDAS' 'HECI' 'LPCB' 'SAT0' 'SBUS' 'XHC' 'XOSI' 'NVME')
   else
     printf "\n"
     printf "${bold}*—-ERROR—-*${normal} This script only supports X99/Z170 motherboards at the moment!\n"
@@ -1021,7 +1121,6 @@ function main()
 
   clear
   greet
-  _checkBoard
   if [ -z "$userChosen" ];
     then
       _user_choices
