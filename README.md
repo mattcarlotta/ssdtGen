@@ -8,7 +8,7 @@ You can download the latest version of ssdtGen to your Desktop by entering the f
 ```
 cd ~/Desktop && curl -O -L https://raw.githubusercontent.com/mattcarlotta/ssdtGen/master/ssdtGen.sh
 ```
-You can then verify the downloaded size (should be about 34kb):
+You can then verify the downloaded size (should be about 57kb):
 ```
 wc -c ssdtGen.sh
 ```
@@ -35,9 +35,8 @@ exit (will exit the script)
 **Special notes:
 DSDT ACPI tables must be vanilla(†). If any devices are renamed, forget about it. Won't work.
 
-* This script (as of now) only supports x99/z170 systems.
+* This script is in beta testing and (as of now) only supports x99/z170 systems.
 * This script will install IASL to the usr/local/bin directory if it's missing from usr/bin or usr/local/bin
-* This script is in beta testing. If you don't want to test something experimental, DO-NOT-USE-IT!
 * If a SSDT-xxxx.aml fails to compile, then it won't be saved. Check the terminal output for errors.
 
 † XHCI must be named XHC via config.plist DSDT patch (recommended to install USBInjectAll.kext + XHCI-x99-injector.kext with a custom SSDT-UAIC.aml):
