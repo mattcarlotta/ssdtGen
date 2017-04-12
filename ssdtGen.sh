@@ -691,7 +691,7 @@ function _getExtDevice_NVME
 ##==============================================================================##
 function _getExtDevice_Address()
 {
-  #only add DSM to pre-existing device
+  #only add DSM to pre-existing device (EVSS, )
   DEVICE=$1
 
   echo '    External ('${gExtDSDTPath}'.'${DEVICE}', DeviceObj)'                          >> "$gSSDT"
@@ -916,7 +916,7 @@ function _buildSSDT()
 ##===============================================================================##
 function _compileSSDT
 {
-  #increase array counter
+  #increase SSDT array counter
   ((gCount++))
   #give user ownership over gen'd SSDTs
   chown $gUSER $gSSDT
