@@ -45,25 +45,26 @@ gUSER=$(stat -f%Su /dev/console)
 #IASL root compiler directory
 gIaslRootDir="/usr/bin/iasl"
 
-#IASL local  directory
+#IASL local directory
 gUsrLocalDir="/usr/local/bin"
 
 #IASL local compiler directory
 gIaslLocalDir="/usr/local/bin/iasl"
 
-# Github IASL download
+#Github IASL download
 gIaslGithub="https://raw.githubusercontent.com/mattcarlotta/ssdtGen/master/tools/iasl"
 
 #Count to cycle thru arrays
 gCount=0
 
-# Bold text
+#Bold text
 bold=$(tput bold)
 
+#Underline text
 underline=$(tput smul)
 stopunderline=$(tput rmul)
 
-# Normal text
+#Normal text
 normal=$(tput sgr0)
 
 #SSDT Table-ID array
@@ -88,7 +89,7 @@ trap '{ _clean_up; exit 1; }' INT
 function _printDots()
 {
   local let dots=0
-
+  # prints 3 dots before terminating
   while [[ $dots -lt 3 ]]
   do
     ((dots++))
@@ -107,6 +108,7 @@ function _clean_up()
   clear
   printf "Cleaning up any left-overs"
   _printDots
+  # remove any left over .dsl files
   rm "${gPath}"/*.dsl 2> /dev/null
   clear
   printf "Script was aborted!\033[0K\r\n"
@@ -152,15 +154,18 @@ function display_instructions()
     read -p "Would you like to reload the script now? (y/n)? " choice
     case "$choice" in
       y|Y )
+        #reload the script
         main
         break
       ;;
       n|N )
+        #ends the script
         echo ''
         _clean_up
         break
       ;;
       * )
+        #if invalid option, allows user to stay within the script
         printf "${bold}*—-ERROR—-*${normal} That was not a valid option, please try again!\n"
       ;;
     esac
@@ -173,13 +178,16 @@ function display_instructions()
 ##==============================================================================##
 function _getSIPStat()
 {
+
   case "$(/usr/bin/csrutil status)" in
     "System Integrity Protection status: enabled." )
+      #checks to make sure SIP isn't 0x3
       printf "${bold}*—-WARNING--*${normal} S.I.P is enabled...\n"
       printf "Its recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n"
       ;;
 
     *"Filesystem Protections: enabled"* )
+      #checks to make sure a custom SIP won't allow unsigned kexts
       printf "${bold}*—-WARNING--*${normal} S.I.P. is partially disabled, but file system protection is still enabled...\n"
       printf "It/s recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n"
       ;;
@@ -194,6 +202,7 @@ function _getSIPStat()
 ##==============================================================================##
 function _checkPreInstalled()
 {
+  # check to see if IASL is installed in usr/bin or usr/local/bin
   if [ -f "$gIaslRootDir" ] || [ -f "$gIaslLocalDir" ];
     then
       echo 'IASL64 is already installed!' > /dev/null 2>&1
@@ -201,6 +210,7 @@ function _checkPreInstalled()
       printf "${bold}*—-ERROR—-*${normal} IASL64 isn't installed in the either $gIaslRootDir nor your $gIaslLocalDir directory!\n"
       printf " \n"
       printf "Attempting to download IASL from Github...\n"
+      #check to see if usr/local/bin exists
       if [ ! -d "$gUsrLocalDir" ];
         then
           echo "$gUsrLocalDir doesn't exist. Creating directory!"
@@ -208,6 +218,7 @@ function _checkPreInstalled()
         else
           echo "$gUsrLocalDir already exists" > /dev/null 2>&1
       fi
+      #download pre-compiled IASL if not installed
       curl -o $gIaslLocalDir $gIaslGithub
       if [[ $? -ne 0 ]];
         then
@@ -215,6 +226,7 @@ function _checkPreInstalled()
           printf "${bold}*—-ERROR—-*${normal} Make sure your network connection is active!\n"
           exit 1
       fi
+      # change the IASL file to be executeable
       chmod +x $gIaslLocalDir
       printf " \n"
       printf "MaciASL has been installed!\n"
@@ -227,17 +239,20 @@ function _checkPreInstalled()
 ##==============================================================================##
 function _checkDevice_Prop()
 {
+  #DEVICE SEARCH RESULT
   SSDT_VALUE=$1
+  #DEVICE
   SSDT_DEVICE=$2
+  #DEVICE PROPERTY
   SSDT_PROP=$3
 
+  #if device search result is empty, display not found error
   if [ -z "$SSDT_VALUE" ]
     then
       echo ''
-      echo "${bold}*—-ERROR—-*${normal} There was a problem locating $SSDT_DEVICE's $SSDT_PROP!"
+      echo "${bold}*—-ERROR—-*${normal} There was a problem locating $SSDT_DEVICE's $SSDT_PROP property!"
       echo "Please run this script in debug mode to generate a debug text file."
       echo ''
-      #_clean_up
   fi
 }
 
@@ -246,13 +261,16 @@ function _checkDevice_Prop()
 ##==============================================================================##
 function _close_Brackets()
 {
+  #more (closing) brackets (MB)
   local MB=$1
+
   if [ "$MB" = true ];
     then
     echo '        }'                                                                      >> "$gSSDT"
     echo '    }'                                                                          >> "$gSSDT"
     if [ ! -z "$BRIDGEADDRESS" ];
       then
+        #if BRIDGEADDRESS is not empty, add one more closing bracket
         echo '    }'                                                                      >> "$gSSDT"
     fi
   else
@@ -263,19 +281,21 @@ function _close_Brackets()
 }
 
 #===============================================================================##
-## SET DEVICE PROPS #
+## SET DEVICE PROPS WITH A 0 VALUE #
 ##==============================================================================##
-function _setDevice_BufferZero()
+function _setDevice_ValueZero()
 {
   echo '                Buffer() { 0x00 },'                                               >> "$gSSDT"
 }
 
 #===============================================================================##
-## SET DEVICE PROPS #
+## SET DEVICE PROPS W/O BUFFER #
 ##==============================================================================##
 function _setDevice_NoBuffer()
 {
+  #DEVICE PROPERTY
   PROP=$1
+  #DEVICE VALUE
   VALUE=$2
 
   echo '                '$PROP','                                                         >> "$gSSDT"
@@ -287,7 +307,9 @@ function _setDevice_NoBuffer()
 ##==============================================================================##
 function _setDeviceProp()
 {
+  #DEVICE PROPERTY
   PROP=$1
+  #DEVICE VALUE
   VALUE=$2
 
   echo '                '$PROP', Buffer() {'$VALUE'},'                                    >> "$gSSDT"
@@ -299,24 +321,34 @@ function _setDeviceProp()
 ##==============================================================================##
 function _findDeviceProp()
 {
+  #DEVICE PROPERTY (compatible/deviceid/name/model/subsystem-id/subsystem-vendor-id/)
   PROP=$1
+  #DEVICE PROPERTY RELATED TO PROP 1 (compatible=>IOName or device-id=>AUDIO)
   local PROP2=$2
+
+  #if PROP2 isn't empty...
   if [ ! -z "$PROP2" ];
     then
-      if [[ "$PROP2" == 'GPU' ]];
+      #check if PROP2 is AUDIO...
+      if [[ "$PROP2" == 'AUDIO' ]];
         then
-          SSDT_VALUE=$(ioreg -lw0 -p IODeviceTree -n $PCISLOT -r | grep device-id | tail -n 1 | sed -e 's/ *[",|=:/_@<>-]//g; s/deviceid//g')
+          #if AUDIO find device-id...
+          SSDT_VALUE=$(ioreg -lw0 -p IODeviceTree -n $PCISLOT -r | grep $PROP | tail -n 1 | sed -e 's/ *[",|=:/_@<>]//g; s/'$PROP'//g')
         else
+          #if not AUDIO find IOName...
           SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP2 | grep $PROP2 |  sed -e 's/ *["|=:/_@]//g; s/'$PROP2'//g')
       fi
     else
+      #if PROP2 is empty, look for device property (PROP1)
       SSDT_VALUE=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@]//g; s/'$PROP'//g')
   fi
 
+  #make sure the return SSDT_VALUE isn't empty
   _checkDevice_Prop "${SSDT_VALUE}" "$DEVICE" "$PROP"
 
   echo '                "'$PROP'", Buffer() {'                                            >> "$gSSDT"
 
+  #set value based upon found device property
   if [[ "$PROP" == 'compatible' ]];
     then
       echo '                    "'$SSDT_VALUE'"'                                          >> "$gSSDT"
@@ -336,26 +368,35 @@ function _setGPUDevice_Status()
 {
   if [[ "$moboID" = "X99" ]];
     then
+      #search for any D0xx devices located within device tree
       D0XX=$(ioreg -p IODeviceTree -n ${PCISLOT} -r | grep D0 | sed -e 's/ *["+|=<a-z>:/_@-]//g; s/^ *//g')
       D0XX=${D0XX:0:4}
 
+      #make sure the return D0XX isn't empty
       _checkDevice_Prop "${D0XX}" "$PCISLOT" "D0XX device"
 
-      echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${GPU}'._STA, Zero)  // _STA: Status'  >> "$gSSDT"
-      echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${AUDIO}'._STA, Zero)  // _STA: Status'>> "$gSSDT"
-      echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${D0XX}'._STA, Zero)  // _STA: Status' >> "$gSSDT"
+      #remove previous GPU and AUDIO devices
+      echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${GPU}'._STA, Zero)'                   >> "$gSSDT"
+      echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${AUDIO}'._STA, Zero)'                 >> "$gSSDT"
+      #if D0xx isn't empty, then remove device
+      if [ ! -z "${D0XX}" ];
+        then
+          echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${D0XX}'._STA, Zero)'              >> "$gSSDT"
+      fi
       echo '}'                                                                            >> "$gSSDT"
     else
-      echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${GPU}'._STA, Zero)  // _STA: Status'  >> "$gSSDT"
+      #if the mobo isn't X99, just remove the GPU device
+      echo '    Name ('${gSSDTPath}'.'${PCISLOT}'.'${GPU}'._STA, Zero)'                   >> "$gSSDT"
       echo '}'                                                                            >> "$gSSDT"
   fi
 }
 
 #===============================================================================##
-## SET DEVICE STATUS #
+## SET DEVICE STATUS TO 0 #
 ##==============================================================================##
 function _setDevice_Status()
 {
+  #remove devices
   echo '    Name ('${gSSDTPath}'.'$SSDT'._STA, Zero)  // _STA: Status'                    >> "$gSSDT"
   echo '}'                                                                                >> "$gSSDT"
 }
@@ -365,9 +406,11 @@ function _setDevice_Status()
 ##==============================================================================##
 function _getDSM()
 {
-  local DSM=$1
+  #LNot DSM
+  local LNDSM=$1
 
-  if [ "$DSM" = true ];
+  #if LNot is true, use LNot compare, otherwise use LEqual compare
+  if [ "$LNDSM" = true ];
     then
       echo '            If (!Arg2) { Return (Buffer() { 0x03 } ) }'                       >> "$gSSDT"
     else
@@ -386,7 +429,9 @@ function _findAUDIO()
 {
   if [[ "$moboID" = "X99" ]];
     then
+      #TAKE GPU DEVICE (H000) and add 1 (H001)
       DEVICE="${DEVICE:0:3}1"
+      #SET TO NEW VARIABLE FOR REMOVING DEVICE
       AUDIO=$DEVICE
   fi
 
@@ -402,14 +447,17 @@ function _findAUDIO()
 ##==============================================================================##
 function _findGPU()
 {
+  #search for a connected GPU
   PROP='attached-gpu-control-path'
   GPUPATH=$(ioreg -l | grep $PROP | sed -e 's/ *[",|=:<a-z>/_@-]//g; s/IOSAACPIPEPCI00AACPIPCI//g; s/3IOPP//g; s/0NVDADC2NVDAAGPM//g')
   PCISLOT=${GPUPATH:0:4} #BR3A / PEG0
   DEVICE=${GPUPATH:4:4} #H000 / PEGP
   GPU=$DEVICE
 
+  #make sure the return GPU_PATH isn't empty
   _checkDevice_Prop "${GPUPATH}" "$SSDT" "$PROP"
 
+  #set GPU device (SB.XXXX.XXXX)
   echo '    Device ('${gSSDTPath}'.'${PCISLOT}'.'${SSDT}')'                               >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Name (_ADR, Zero)  // _ADR: Address'                                      >> "$gSSDT"
@@ -448,12 +496,15 @@ function _getWindows_OSI()
 ##==============================================================================##
 function _findDevice_Address()
 {
-  DEVICE=$1
-  DEVICE2=$2
+  DEVICE=$1 #SMBS or SBUS
+  DEVICE2=$2 # SBUS or SMBS
   PROP='acpi-path'
   SSDTADR=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+
+  #make sure the return SSDT_VALUE isn't empty
   _checkDevice_Prop "${SSDTADR}" "$DEVICE" "$PROP"
 
+  #set-up SBUS/SMBS Mikey driver
   echo '    Device ('${gSSDTPath}'.'${DEVICE2}')'                                         >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
@@ -472,7 +523,7 @@ function _findDevice_Address()
   echo '                          0x39,'                                                  >> "$gSSDT"
   echo '                          "device-id",'                                           >> "$gSSDT"
   echo '                          0x0CCB,'                                                >> "$gSSDT"
-  _setDevice_BufferZero
+  _setDevice_ValueZero
   echo '                      })'                                                         >> "$gSSDT"
   echo '                   }'                                                             >> "$gSSDT"
   echo '                   Method (H1EN, 1, Serialized)'                                  >> "$gSSDT"
@@ -535,7 +586,7 @@ function _findDevice_Address()
   _getDSM
   echo '                        "address",'                                               >> "$gSSDT"
   echo '                        0x57,'                                                    >> "$gSSDT"
-  _setDevice_BufferZero
+  _setDevice_ValueZero
   _close_Brackets
   echo '            Device (BLC0)'                                                        >> "$gSSDT"
   echo '            {'                                                                    >> "$gSSDT"
@@ -583,38 +634,47 @@ function _findDevice_Address()
 ##==============================================================================##
 function _getExtDevice_NVME
 {
-  # DEVICE (BR1B)
+  #user speccified NVMEDEVICE (BR1B,PEG0,RP04,etc)
   echo '    External ('${gExtDSDTPath}'.'${NVMEDEVICE}', DeviceObj)'                      >> "$gSSDT"
+
+  #search for any D0xx devices located within NVMEDEVICE's tree
   FOUNDD0xx=$(ioreg -p IODeviceTree -n "$NVMEDEVICE" -r | grep D0 | sed -e 's/ *["+|=<a-z>:/_@-]//g; s/^ *//g' | cut -c1-4 | sed '$!N;s/\n/ /')
 
+  #if INCOMPLETENVMEPATH is empty...
   if [ -z "$INCOMPLETENVMEPATH" ];
     then
-      #BR1B.H000, BR1B.D075, BR1B.D081
+      #combine BR1B.H000, BR1B.D075, BR1B.D081 for removal
       extDEVICES=($NVMELEAFNODE $FOUNDD0xx)
     else
+      #otherwise, only D0xx devices will be removed
       extDEVICES=($FOUNDD0xx)
   fi
 
+  #loop through extDEVICES, set an External reference, then remove it
   for((i=0;i<${#extDEVICES[@]};i++))
   do
     echo '    External ('${gExtDSDTPath}'.'${NVMEDEVICE}'.'${extDEVICES[$i]}', DeviceObj)'>> "$gSSDT"
     echo '    Scope ('${gExtDSDTPath}'.'${NVMEDEVICE}'.'${extDEVICES[$i]}')'              >> "$gSSDT"
-    echo '    {Name (_STA, Zero)}'      >> "$gSSDT"
+    echo '    {Name (_STA, Zero)}'                                                        >> "$gSSDT"
   done
+
+  #set NVME device scope (SB.PCI0.XXXX) and then NVME device
   echo '    Scope ('${gExtDSDTPath}'.'${NVMEDEVICE}')'                                    >> "$gSSDT"
-  echo '    {'                          >> "$gSSDT"
+  echo '    {'                                                                            >> "$gSSDT"
   echo '        Device (NVME)'                                                            >> "$gSSDT"
   echo '        {'                                                                        >> "$gSSDT"
 
+  #if user specified INCOMPLETENVMEPATH is empty, set 0 address, otherwise set incomplete address
   if [ -z "$INCOMPLETENVMEPATH" ];
     then
-      #NVME HAS COMPLETE ACPI
+      #NVME HAS A COMPLETE ACPI
       echo '            Name (_ADR, Zero)'                                                >> "$gSSDT"
     else
-      #NVME HAS INCOMPLETE ACPI
-        echo '            Name (_ADR, '$NVME_ACPI_ADRESSS')'                              >> "$gSSDT"
+      #NVME HAS AN INCOMPLETE ACPI
+      echo '            Name (_ADR, '$NVME_ACPI_ADRESSS')'                                >> "$gSSDT"
   fi
 
+  #if user specified BRIDGEADDRESS is not empty, create a new PCIB device w/ address
   if [ ! -z "$BRIDGEADDRESS" ]
     then
     echo '        Device (PCIB)'                                                          >> "$gSSDT"
@@ -622,6 +682,7 @@ function _getExtDevice_NVME
     echo '            Name (_ADR, '$BRIDGEADDRESS')'                                      >> "$gSSDT"
   fi
 
+  #use LEqual operand
   _getDSM
 }
 
@@ -630,11 +691,14 @@ function _getExtDevice_NVME
 ##==============================================================================##
 function _getExtDevice_Address()
 {
+  #only add DSM to pre-existing device
   DEVICE=$1
 
   echo '    External ('${gExtDSDTPath}'.'${DEVICE}', DeviceObj)'                          >> "$gSSDT"
   echo '    Method ('${gSSDTPath}'.'${DEVICE}'._DSM, 4, NotSerialized)'                   >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
+
+  #use LNot operand
   _getDSM true
 }
 
@@ -643,12 +707,19 @@ function _getExtDevice_Address()
 ##==============================================================================##
 function _getDevice_ACPI_Path()
 {
+  #ALZA/HDAS, HECI
   DEVICE=$1
+  #HDEF, IMEI
   NEWDEVICE=$2
+  #DEVICE PROPERTY
   PROP='acpi-path'
+  #FIND DEVICE ADDRESS
   SSDTADR=$(ioreg -p IODeviceTree -n "$DEVICE" -k $PROP | grep $PROP |  sed -e 's/ *["|=<A-Z>:/_@-]//g; s/acpipathlane//g; y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+
+  #make sure the return SSDTADR isn't empty
   _checkDevice_Prop "${SSDTADR}" "$DEVICE" "$PROP"
 
+  #if NEWDEVICE is not empty, set a new device, otherwise use existing device
   if [ ! -z "$NEWDEVICE" ];
     then
       echo '    Device ('${gSSDTPath}'.'${NEWDEVICE}')'                                   >> "$gSSDT"
@@ -657,6 +728,8 @@ function _getDevice_ACPI_Path()
   fi
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
+
+  #use LEqual operand
   _getDSM
 }
 
@@ -713,7 +786,7 @@ function _buildSSDT()
       _findAUDIO
       _setDeviceProp '"hda-gfx"' '"onboard-2"'
       _setDeviceProp '"PinConfigurations"' '0xe0, 0x00, 0x56, 0x28'
-      _findDeviceProp 'device-id' 'GPU'
+      _findDeviceProp 'device-id' 'AUDIO'
       _close_Brackets
       _setGPUDevice_Status
   fi
@@ -826,7 +899,7 @@ function _buildSSDT()
       _setDevice_NoBuffer '"AAPL,current-in-sleep"' '0x0A8C'
       _setDevice_NoBuffer '"AAPL,max-port-current-in-sleep"' '0x0834'
       _setDevice_NoBuffer '"AAPL,device-internal"' '0x00'
-      _setDevice_BufferZero
+      _setDevice_ValueZero
       _setDeviceProp '"AAPL,clock-id"' '0x01'
       _findDeviceProp 'device-id'
       _close_Brackets
@@ -843,19 +916,27 @@ function _buildSSDT()
 ##===============================================================================##
 function _compileSSDT
 {
+  #increase array counter
   ((gCount++))
+  #give user ownership over gen'd SSDTs
   chown $gUSER $gSSDT
   printf "${STYLE_BOLD}Compiling:${STYLE_RESET} ${gSSDTID}.dsl\n"
+  #compile gen'd SSDTs
   iasl -G "$gSSDT"
   printf "${STYLE_BOLD}Removing:${STYLE_RESET} ${gSSDTID}.dsl\n"
   printf  "\n%s" '--------------------------------------------------------------------------------'
   printf '\n'
+  #remove gen'd SSDT-XXXX.dsl files
   rm "$gSSDT"
+
+  #exit script if user only wanted to build one SSDT
   if [ ! -z "$buildOne" ];
     then
       echo "User only wanted to build ${buildOne}" > /dev/null 2>&1
       exit 0
   fi
+
+  #otherwise build all SSDTs
   if [[ $gCount -lt 10 ]];
    then
       echo 'Attempting to build all SSDTs...' > /dev/null 2>&1
@@ -868,12 +949,16 @@ function _compileSSDT
 ##===============================================================================##
 function _printHeader()
 {
+  #set SSDTs based upon moboID
   gSSDTID="SSDT-${gTableID[$gCount]}"
   printf 'Creating: '${gSSDTID}'.dsl \n'
+  #set a new SSDT-XXXX.dsl directory
   gSSDT="${gPath}/${gSSDTID}.dsl"
 
   echo 'DefinitionBlock ("", "SSDT", 1, "mfc88", "'${gTableID[$gCount]}'", 0x00000000)'   > "$gSSDT"
   echo '{'                                                                                >> "$gSSDT"
+
+  #build and compile 0-9 SSDTs
   _buildSSDT ${gTableID[$gCount]}
   _compileSSDT
 }
@@ -883,6 +968,7 @@ function _printHeader()
 ##===============================================================================##
 function _checkIf_PATH_Exists()
 {
+  #check and make sure user specified a valid device/leafnode
   if [ ! -z "$INCOMPLETENVMEPATH" ];
     then
       IOREGPATH=$(ioreg -p IODeviceTree -n "$NVMEDEVICE" -r)
@@ -890,19 +976,22 @@ function _checkIf_PATH_Exists()
       IOREGPATH=$(ioreg -p IODeviceTree -n "$NVMEDEVICE" -r | grep -o $NVMELEAFNODE)
   fi
 
+  #if IOREG is empty...
   if [ -z "$IOREGPATH" ]
     then
-        if [ -z "$INCOMPLETENVMEPATH" ];
+      #check if INCOMPLETENVMEPATH was not activated, if so, display NVMEPATH error
+      if [ -z "$INCOMPLETENVMEPATH" ];
         then
           echo ''
           echo "${bold}*—-ERROR—-*${normal} There was a problem locating $NVMEDEVICE's leafnode ($NVMELEAFNODE)!"
           echo "Please make sure the ACPI path submitted is correct!"
           _askfor_NVMEPATH
-        else
-          echo ''
-          echo "${bold}*—-ERROR—-*${normal} There was a problem locating $INCOMPLETENVMEPATH!"
-          echo "Please make sure the ACPI path submitted is correct!"
-          _askfor_INCOMPLETENVMEDETAILS
+      else
+        #otherwise, display INCOMPLETENVMEPATH error
+        echo ''
+        echo "${bold}*—-ERROR—-*${normal} There was a problem locating $INCOMPLETENVMEPATH!"
+        echo "Please make sure the ACPI path submitted is correct!"
+        _askfor_INCOMPLETENVMEDETAILS
     fi
   fi
 }
@@ -910,12 +999,14 @@ function _checkIf_PATH_Exists()
 ##===============================================================================##
 # CHECK IF USER SPECIFIED ADDRESSES ARE IN CORRECT FORMAT #
 ##===============================================================================##
-function _checkIf_VALIDADRESS()
+function _checkIf_VALIDADDRESS()
 {
+  #USER SPECIFIED BRIDGE ADDRESSS
   BR=$1
 
   if [ "$BR" == true ];
     then
+      #if BRIDGEADDRESS is empty or is not at least "0x0", then show error, then send back to prompt
       if [ -z "$BRIDGEADDRESS" ] || [[ "$BRIDGEADDRESS" != 0x* ]];
         then
         echo ''
@@ -923,6 +1014,7 @@ function _checkIf_VALIDADRESS()
         _askfor_PCIBRIDGE
       fi
     else
+      #if NVME_ACPI_ADRESSS is empty or is not at least "0x0", then show error, then send back to prompt
       if [ -z "$NVME_ACPI_ADRESSS" ] || [[ "$NVME_ACPI_ADRESSS" != 0x* ]];
         then
         echo ''
@@ -941,19 +1033,24 @@ function _askfor_PCIBRIDGE()
   while true; do
   read -p "Is the NVME's path behind a PCI bridge? Write ${bold}yes${normal} followed by the PCI bridge address location ${bold}0x0000${normal}, othwerwise write ${bold}no${normal}. $cr--> " choice
     case "$choice" in
+      #user wants to exit script
       exit|EXIT )
       _clean_up
       break
       ;;
       no|NO )
+      #NVME isn't behind a PCI bridge
       echo 'NVME isn/t behind a PCI bridge!' > /dev/null 2>&1
       break
       ;;
+      #NVME is behind a PCI bridge
       yes*|YES* )
       BRIDGEADDRESS=${choice:4:10}
-      _checkIf_VALIDADRESS true
+      #check if PCI bridge address is in the correct syntax
+      _checkIf_VALIDADDRESS true
       break
       ;;
+      #user input invalid choice
       * )
       echo ''
       echo "${bold}*—-ERROR—-*${normal} Sorry, but $choice is not a valid option! Try again"
@@ -971,17 +1068,23 @@ function _askfor_NVMEPATH()
   echo ''
   read -p "What is the NVME's ACPI path? For example, write ${bold}BR1B.H000${normal}, or ${bold}RP04.PSXS${normal}, or ${bold}PEG0.PEGP${normal}, and so on. $cr--> " choice
     case "$choice" in
+      #user wants to exit script
       exit|EXIT )
       _clean_up
       ;;
+      #user specified a device and leafnode
       * )
-      NVME_ACPI_PATH=$choice
-      NVMEDEVICE=${choice:0:4}
-      NVMELEAFNODE=${choice:5:4}
+      NVME_ACPI_PATH=$choice #full ACPI path
+      NVMEDEVICE=${choice:0:4} #device path (BR1B)
+      NVMELEAFNODE=${choice:5:4} #leafnode (H000)
+      #make sure the ACPI path exists
       _checkIf_PATH_Exists
+      #if it does exist, send them to PCI bridge prompt
       _askfor_PCIBRIDGE
       echo ''
+      #if no PCI bridge, set gCount according to found SSDT (10)
       gCount=$i
+      #attempt to build and compile SSDT
       _printHeader
       ;;
   esac
@@ -995,22 +1098,29 @@ function _askfor_INCOMPLETENVMEDETAILS()
   echo ''
   read -p "Is the NVME's ACPI path incomplete? If so, write the device and address. For example: ${bold}BR1B 0x0000${normal}, or ${bold}RP04 0x0000${normal}, or ${bold}PEG0 0x0000${normal}, and so on. Otherwise, just write ${bold}no${normal}. $cr--> " choice
     case "$choice" in
+      #user wants to exit script
       exit|EXIT )
       _clean_up
       ;;
+      #NVME path isn't incomplete, send to NVMEPATH prompt
       no|NO )
       echo 'NVME/s ACPI path isn/t incomplete!' > /dev/null 2>&1
       _askfor_NVMEPATH
       ;;
+      #user specified device and address
       * )
-      NVME_ACPI_PATH=${choice:0:4}
-      NVME_ACPI_ADRESSS=${choice:5:10}
-      INCOMPLETENVMEPATH=$NVME_ACPI_PATH
-      NVMEDEVICE=$NVME_ACPI_PATH
-      _checkIf_VALIDADRESS
+      NVME_ACPI_PATH=${choice:0:4} #device (BR1B)
+      NVME_ACPI_ADRESSS=${choice:5:10} #address (0x8000)
+      INCOMPLETENVMEPATH=$NVME_ACPI_PATH #device (BR1B) used for checking against
+      NVMEDEVICE=$NVME_ACPI_PATH #device (BR1B) used for checking against
+      #check if NVME device address is in the correct syntax
+      _checkIf_VALIDADDRESS
+      #make sure the ACPI path exists
       _checkIf_PATH_Exists
       echo ''
+      #if path exists and address is in the correct syntax, set gCount according to found SSDT (10)
       gCount=$i
+      #attempt to build and compile SSDT
       _printHeader
       ;;
   esac
@@ -1021,18 +1131,22 @@ function _askfor_INCOMPLETENVMEDETAILS()
 ##===============================================================================##
 function _checkIf_SSDT_Exists()
 {
+  #loop through SSDT array to find user specfied buildOne SSDT
   for((i=0;i<=10;i++))
   do
   if [[ "${buildOne}" == "${gTableID[$i]}" ]];
     then
+    #if NVME was selected, send them to INCOMPLETENVMEDETAILS prompt
     if [[ "${buildOne}" == "NVME" ]];
       then
         gCount=$i
         _askfor_INCOMPLETENVMEDETAILS
         exit 0
     fi
+    #if not NVME, set gCount according to found SSDT (0-9)
     gCount=$i
     echo ''
+    #attempt to build and compile SSDT
     _printHeader
     exit 0
   fi
@@ -1070,7 +1184,7 @@ function _user_choices()
       #main true 2>&1 | tee "$dPath"
       echo "${bold}Now running in debug mode!${normal}"
       _user_choices 2>&1 | tee "$dPath"
-      ioreg >> "$dPath"
+      ioreg -lw0 -p IODeviceTree >> "$dPath"
       set +x
       exit 0
       ;;
@@ -1082,7 +1196,7 @@ function _user_choices()
       exit|EXIT )
       _clean_up
       ;;
-      # oops - user made a mistake, reload script
+      # oops - user made a mistake, show display instructions
       * )
       printf "\n"
       printf "${bold}*—-ERROR—-*${normal} That was not a valid option!"
@@ -1109,6 +1223,8 @@ function greet()
 function _findMoboID()
 {
   #moboID=$(ioreg -n FakeSMCKeyStore -k product-name | grep product-name | sed -e 's/ *["|=:/_@-]//g; s/productname//g' | grep -o $mobo)
+
+  #find user's motherboard
   moboID=$(ioreg -lw0 -p IODeviceTree | awk '/OEMBoard/ {print $4}' | grep -o ${gMoboID[$i]})
 }
 
@@ -1117,16 +1233,19 @@ function _findMoboID()
 ##==============================================================================##
 function _checkBoard
 {
+  #loop through MoboID array list (X99, Z170, MAXIMUS)
   for((i=0;i<=${#gMoboID[@]};i++))
   do
     _findMoboID
     if [ ! -z "$moboID" ];
       then
+        #if mobo was found, break loop
         echo "User has a $moboID board!"  > /dev/null 2>&1
         break
     fi
   done
 
+  #check to see if moboID matches X99, Z170 or MAXIMUS
   if [[ "$moboID" = "X99" ]];
     then
       gTableID=('ALZA' 'EVSS' 'GFX1' 'GLAN' 'HECI' 'LPC0' 'SAT1' 'SMBS' 'XHC' 'XOSI' 'NVME')
@@ -1134,6 +1253,7 @@ function _checkBoard
       then
       gTableID=('EVSS' 'GLAN' 'GFX1' 'HDAS' 'HECI' 'LPCB' 'SAT0' 'SBUS' 'XHC' 'XOSI' 'NVME')
   else
+    #if moboID doesn't match, display error, exit script
     printf "\n"
     printf "${bold}*—-ERROR—-*${normal} This script only supports X99/Z170 motherboards at the moment!\n"
     printf "\n"
@@ -1149,21 +1269,28 @@ function _checkBoard
 ##==============================================================================##
 function main()
 {
+  #user selected buildOne
   local userChosen=$1
 
   clear
   greet
+  #if user decides to buildOne, send them to _user_choices prompt
   if [ -z "$userChosen" ];
     then
       _user_choices
   fi
+  #check SIP status
   _getSIPStat
+  #check if IASL is installed
   _checkPreInstalled
+  #attempt to build and compile SSDTs
   _printHeader
 }
 
+#check if user is ROOT, if not, ask for password before continuing, if already ROOT, run script
 if [[ `id -u` -ne 0 ]];
   then
+    clear
     printf "This script must be run as ${bold}${underline}ROOT USER${stopunderline}${normal}! Please input your Mac OS password to continue...\n"
     sudo "$0"
   else
