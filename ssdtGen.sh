@@ -69,6 +69,7 @@ normal=$(tput sgr0)
 #SSDT Table-ID array
 gTableID=""
 
+#Motherboad ID array
 gMoboID=('X99' 'Z170' 'MAXIMUS')
 
 #carriage return
@@ -1067,7 +1068,7 @@ function _user_choices()
       debug|DEBUG )
       set -x
       #main true 2>&1 | tee "$dPath"
-      echo 'Now running in debug mode!'
+      echo "${bold}Now running in debug mode!${normal}"
       _user_choices 2>&1 | tee "$dPath"
       ioreg >> "$dPath"
       set +x
