@@ -77,10 +77,10 @@ gMoboID=('X99' 'Z170' 'MAXIMUS')
 cr=`echo $'\n.'`
 cr=${cr%.}
 
-# set Terminal window size
+#set Terminal window size
 printf '\e[8;30;102t'
 
-# if user ctrl+c, then cleanup
+#if user ctrl+c, then cleanup
 trap '{ _clean_up; exit 1; }' INT
 
 #===============================================================================##
@@ -88,8 +88,9 @@ trap '{ _clean_up; exit 1; }' INT
 ##==============================================================================##
 function _printDots()
 {
+  #prints 3 dots before terminating
   local let dots=0
-  # prints 3 dots before terminating
+
   while [[ $dots -lt 3 ]]
   do
     ((dots++))
@@ -153,19 +154,19 @@ function display_instructions()
   while true; do
     read -p "Would you like to reload the script now? (y/n)? " choice
     case "$choice" in
+      #reload the script
       y|Y )
-        #reload the script
         main
         break
       ;;
+      #ends the script
       n|N )
-        #ends the script
         echo ''
         _clean_up
         break
       ;;
+      #if invalid option, allows user to stay within the script
       * )
-        #if invalid option, allows user to stay within the script
         printf "${bold}*—-ERROR—-*${normal} That was not a valid option, please try again!\n"
       ;;
     esac
@@ -202,7 +203,7 @@ function _getSIPStat()
 ##==============================================================================##
 function _checkPreInstalled()
 {
-  # check to see if IASL is installed in usr/bin or usr/local/bin
+  #check to see if IASL is installed in usr/bin or usr/local/bin
   if [ -f "$gIaslRootDir" ] || [ -f "$gIaslLocalDir" ];
     then
       echo 'IASL64 is already installed!' > /dev/null 2>&1
@@ -226,7 +227,7 @@ function _checkPreInstalled()
           printf "${bold}*—-ERROR—-*${normal} Make sure your network connection is active!\n"
           exit 1
       fi
-      # change the IASL file to be executeable
+      #change the IASL file to be executeable
       chmod +x $gIaslLocalDir
       printf " \n"
       printf "MaciASL has been installed!\n"
