@@ -1160,7 +1160,7 @@ function main()
 
 if [[ `id -u` -ne 0 ]];
   then
-    printf "This script must be run as ROOT!\n"
+    printf "This script must be run as ROOT! Please input your Mac OS password to continue!\n"
     sudo "$0"
   else
     main
