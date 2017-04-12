@@ -965,7 +965,7 @@ function _askfor_PCIBRIDGE()
 function _askfor_NVMEPATH()
 {
   echo ''
-  read -p "What is the ACPI NVME's path? For example, write ${bold}BR1B.H000${normal}, or ${bold}RP04.PSXS${normal}, or ${bold}PEG0.PEGP${normal}, and so on. $cr--> " choice
+  read -p "What is the NVME's ACPI path? For example, write ${bold}BR1B.H000${normal}, or ${bold}RP04.PSXS${normal}, or ${bold}PEG0.PEGP${normal}, and so on. $cr--> " choice
     case "$choice" in
       exit|EXIT )
       _clean_up
