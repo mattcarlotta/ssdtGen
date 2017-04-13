@@ -1007,16 +1007,16 @@ function _checkIf_VALIDADDRESS()
 
   if [ "$BR" == true ];
     then
-      #if BRIDGEADDRESS is empty or is not at least "0x0", then show error, then send back to prompt
-      if [ -z "$BRIDGEADDRESS" ] || [[ "$BRIDGEADDRESS" != 0x* ]];
+      #if BRIDGEADDRESS is not at least "0x" or is <= 2, then show error, then send back to prompt
+      if [[ "$BRIDGEADDRESS" != 0x* ]] || [[ "${#BRIDGEADDRESS}" -le 2 ]] ;
         then
         echo ''
         echo "${bold}*—-ERROR—-*${normal} You must include a valid address! Try again"
         _askfor_PCIBRIDGE
       fi
     else
-      #if NVME_ACPI_ADRESSS is empty or is not at least "0x0", then show error, then send back to prompt
-      if [ -z "$NVME_ACPI_ADRESSS" ] || [[ "$NVME_ACPI_ADRESSS" != 0x* ]];
+      #if NVME_ACPI_ADRESSS is not at least "0x" or is <= 2, then show error, then send back to prompt
+      if [[ "$NVME_ACPI_ADRESSS" != 0x* ]] || [[ "${#NVME_ACPI_ADRESSS}" -le 2 ]];
         then
         echo ''
         echo "${bold}*—-ERROR—-*${normal} You must include a valid address! Try again"
@@ -1032,7 +1032,7 @@ function _askfor_PCIBRIDGE()
 {
   echo ''
   while true; do
-  read -p "Is the NVME's path behind a PCI bridge? Write ${bold}yes${normal} followed by the PCI bridge address location ${bold}0x0000${normal}, othwerwise write ${bold}no${normal}. $cr--> " choice
+  read -p "Is the NVME behind a PCI bridge? If so, write the PCI bridge address ${bold}0x0000${normal}, othwerwise write ${bold}no${normal}. $cr--> " choice
     case "$choice" in
       #user wants to exit script
       exit|EXIT )
@@ -1045,8 +1045,8 @@ function _askfor_PCIBRIDGE()
       break
       ;;
       #NVME is behind a PCI bridge
-      yes*|YES* )
-      BRIDGEADDRESS=${choice:4:10}
+      0x*|0X* )
+      BRIDGEADDRESS=${choice:0:8}
       #check if PCI bridge address is in the correct syntax
       _checkIf_VALIDADDRESS true
       break
