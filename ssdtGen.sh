@@ -1007,8 +1007,8 @@ function _checkIf_VALIDADDRESS()
 
   if [ "$BR" == true ];
     then
-      #if BRIDGEADDRESS is not at least "0x" or is <= 2, then show error, then send back to prompt
-      if [[ "$BRIDGEADDRESS" != 0x* ]] || [[ "${#BRIDGEADDRESS}" -le 2 ]] ;
+      #if BRIDGEADDRESS is less than or equal to 2, then show error, then send back to prompt
+      if [[ "${#BRIDGEADDRESS}" -le 2 ]] ;
         then
         echo ''
         echo "${bold}*—-ERROR—-*${normal} You must include a valid address! Try again"
