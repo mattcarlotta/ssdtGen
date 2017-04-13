@@ -449,7 +449,7 @@ function _findGPU()
 {
   #search for a connected GPU
   PROP='attached-gpu-control-path'
-  GPUPATH=$(ioreg -l | grep $PROP | sed -e 's/ *[",|=:<a-z>/_@-]//g; s/IOSAACPIPEPCI//g; s/AACPIPCI//g; s/IOPP//g' | cut -c3-6,8-10)
+  GPUPATH=$(ioreg -l | grep $PROP | sed -e 's/ *[",|=:<a-z>/_@-]//g; s/IOSAACPIPEPCI//g; s/AACPIPCI//g; s/IOPP//g' | cut -c3-6,8-11)
   PCISLOT=${GPUPATH:0:4} #BR3A / PEG0
   DEVICE=${GPUPATH:4:4} #H000 / PEGP
   GPU=$DEVICE
@@ -876,9 +876,9 @@ function _buildSSDT()
           _findDevice_Address "${SSDT}" "SMBS"
         else
           # for debug only
-          #_findDevice_Address SBUS "SBUS"
+          _findDevice_Address SBUS "SBUS"
           # for debug only
-          _findDevice_Address "${SSDT}" "SBUS"
+          #_findDevice_Address "${SSDT}" "SBUS"
       fi
       _setDevice_Status
   fi
