@@ -2,7 +2,7 @@
 #
 # Script (ssdtGen.sh) to create SSDTs for Mac OS.
 #
-# Version 0.1.2beta - Copyright (c) 2017 by M.F.C.
+# Version 0.1.3beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
@@ -175,20 +175,19 @@ function display_instructions()
 
 
 #===============================================================================##
-## CHECK SIP #
+## CHECK SIP WARNINGS #
 ##==============================================================================##
 function _getSIPStat()
 {
 
   case "$(/usr/bin/csrutil status)" in
+    #checks to make sure SIP isn't 0x3
     "System Integrity Protection status: enabled." )
-      #checks to make sure SIP isn't 0x3
       printf "${bold}*—-WARNING--*${normal} S.I.P is enabled...\n"
       printf "Its recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n"
       ;;
-
+    #checks to make sure a custom SIP won't allow unsigned kexts
     *"Filesystem Protections: enabled"* )
-      #checks to make sure a custom SIP won't allow unsigned kexts
       printf "${bold}*—-WARNING--*${normal} S.I.P. is partially disabled, but file system protection is still enabled...\n"
       printf "It/s recommended (not required) that you completely disable S.I.P. by setting CsrActiveConfig to 0x67 in your config.plist!\n"
       ;;
@@ -236,7 +235,7 @@ function _checkPreInstalled()
 }
 
 #===============================================================================##
-## CHECK DEVICE PROP IS NOT EMPTY #
+## CHECK DEVICE PROPERTY SEARCH RESULTS #
 ##==============================================================================##
 function _checkDevice_Prop()
 {
@@ -258,7 +257,7 @@ function _checkDevice_Prop()
 }
 
 #===============================================================================##
-## EOF BRACKETS #
+## E.O.F. BRACKETS #
 ##==============================================================================##
 function _close_Brackets()
 {
@@ -282,7 +281,7 @@ function _close_Brackets()
 }
 
 #===============================================================================##
-## SET DEVICE PROPS WITH A 0 VALUE #
+## SET DEVICE PROPERTIES WITH A 0 VALUE #
 ##==============================================================================##
 function _setDevice_ValueZero()
 {
@@ -290,7 +289,7 @@ function _setDevice_ValueZero()
 }
 
 #===============================================================================##
-## SET DEVICE PROPS W/O BUFFER #
+## SET DEVICE PROPERTIES W/O BUFFER #
 ##==============================================================================##
 function _setDevice_NoBuffer()
 {
@@ -304,7 +303,7 @@ function _setDevice_NoBuffer()
 }
 
 #===============================================================================##
-## SET DEVICE PROPS #
+## SET DEVICE PROPERTIES #
 ##==============================================================================##
 function _setDeviceProp()
 {
@@ -318,7 +317,7 @@ function _setDeviceProp()
 }
 
 #===============================================================================##
-## FIND DEVICE PROP #
+## FIND DEVICE PROPERTIES #
 ##==============================================================================##
 function _findDeviceProp()
 {
@@ -363,7 +362,7 @@ function _findDeviceProp()
 }
 
 #===============================================================================##
-## SET DEVICE STATUS #
+## SET GPU DEVICE STATUS #
 ##==============================================================================##
 function _setGPUDevice_Status()
 {
@@ -403,7 +402,7 @@ function _setDevice_Status()
 }
 
 #===============================================================================##
-## GRAB LEqual or LNot _DSM #
+## GRAB LEqual OR LNot COMPARE #
 ##==============================================================================##
 function _getDSM()
 {
@@ -424,7 +423,7 @@ function _getDSM()
 }
 
 #===============================================================================##
-## FIND AUDIO PROPS #
+## FIND AUDIO PROPERTIES #
 ##==============================================================================##
 function _findAUDIO()
 {
@@ -444,13 +443,13 @@ function _findAUDIO()
 
 
 #===============================================================================##
-## FIND GPU PROPS #
+## FIND GPU PROPERTIES #
 ##==============================================================================##
 function _findGPU()
 {
   #search for a connected GPU
   PROP='attached-gpu-control-path'
-  GPUPATH=$(ioreg -l | grep $PROP | sed -e 's/ *[",|=:<a-z>/_@-]//g; s/IOSAACPIPEPCI00AACPIPCI//g; s/3IOPP//g; s/0NVDADC2NVDAAGPM//g')
+  GPUPATH=$(ioreg -l | grep $PROP | sed -e 's/ *[",|=:<a-z>/_@-]//g; s/IOSAACPIPEPCI//g; s/AACPIPCI//g; s/IOPP//g' | cut -c3-6,8-10)
   PCISLOT=${GPUPATH:0:4} #BR3A / PEG0
   DEVICE=${GPUPATH:4:4} #H000 / PEGP
   GPU=$DEVICE
@@ -631,7 +630,7 @@ function _findDevice_Address()
 }
 
 #===============================================================================##
-## GET EXTERNAL DEVICE NVME DEVICE #
+## GET EXTERNAL NVME DEVICE #
 ##==============================================================================##
 function _getExtDevice_NVME
 {
@@ -735,7 +734,7 @@ function _getDevice_ACPI_Path()
 }
 
 #===============================================================================##
-## CHECKS WHAT KIND OF METHOD: DSM OR DEVICE #
+## ATTEMPTS TO BUILD SSDTS FOR DEVICES #
 ##==============================================================================##
 function _buildSSDT()
 {
@@ -913,7 +912,7 @@ function _buildSSDT()
 }
 
 ##===============================================================================##
-# COMPILE SSDT AND CLEAN UP #
+# COMPILE SSDTs AND CLEAN UP #
 ##===============================================================================##
 function _compileSSDT
 {
@@ -922,7 +921,7 @@ function _compileSSDT
   #give user ownership over gen'd SSDTs
   chown $gUSER $gSSDT
   printf "${STYLE_BOLD}Compiling:${STYLE_RESET} ${gSSDTID}.dsl\n"
-  #compile gen'd SSDTs
+  #attempt to compile gen'd SSDTs
   iasl -G "$gSSDT"
   printf "${STYLE_BOLD}Removing:${STYLE_RESET} ${gSSDTID}.dsl\n"
   printf  "\n%s" '--------------------------------------------------------------------------------'
@@ -946,7 +945,7 @@ function _compileSSDT
 }
 
 ##===============================================================================##
-# PRINT FILE HEADER #
+# PRINT TO FILE HEADER #
 ##===============================================================================##
 function _printHeader()
 {
@@ -965,7 +964,7 @@ function _printHeader()
 }
 
 ##===============================================================================##
-# CHECK USER CHOICES TO SSDT LIST #
+# CHECK USER'S INPUT TO LOCAL IOREG #
 ##===============================================================================##
 function _checkIf_PATH_Exists()
 {
@@ -1092,7 +1091,7 @@ function _askfor_NVMEPATH()
 }
 
 ##===============================================================================##
-# ASK USER IF NVME PATH IS COMPLETE #
+# ASK USER IF NVME PATH IS INCOMPLETE #
 ##===============================================================================##
 function _askfor_INCOMPLETENVMEDETAILS()
 {
@@ -1159,7 +1158,7 @@ function _checkIf_SSDT_Exists()
 }
 
 ##===============================================================================##
-# USER CHOOSES WHAT TO DO #
+# GIVE USER CHOICES ON WHAT TO DO #
 ##===============================================================================##
 function _user_choices()
 {
@@ -1208,17 +1207,6 @@ function _user_choices()
 }
 
 #===============================================================================##
-## GREET USER #
-##==============================================================================##
-function greet()
-{
-  printf '                         ssdtGen Version 0.1.2b - Copyright (c) 2017 by M.F.C.'
-  printf  "\n%s" '-----------------------------------------------------------------------------------------------------'
-  printf ' \n'
-  sleep 0.25
-}
-
-#===============================================================================##
 ## FIND USER'S MOTHERBOARD #
 ##==============================================================================##
 function _findMoboID()
@@ -1263,6 +1251,17 @@ function _checkBoard
     printf "\n"
     exit 0
   fi
+}
+
+#===============================================================================##
+## GREET USER HEADER #
+##==============================================================================##
+function greet()
+{
+  printf '                         ssdtGen Version 0.1.3b - Copyright (c) 2017 by M.F.C.'
+  printf  "\n%s" '-----------------------------------------------------------------------------------------------------'
+  printf ' \n'
+  sleep 0.25
 }
 
 #===============================================================================##
