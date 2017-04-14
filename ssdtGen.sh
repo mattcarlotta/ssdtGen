@@ -876,9 +876,9 @@ function _buildSSDT()
           _findDevice_Address "${SSDT}" "SMBS"
         else
           # for debug only
-          _findDevice_Address SBUS "SBUS"
+          #_findDevice_Address SBUS "SBUS"
           # for debug only
-          #_findDevice_Address "${SSDT}" "SBUS"
+          _findDevice_Address "${SSDT}" "SBUS"
       fi
       _setDevice_Status
   fi
