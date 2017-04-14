@@ -25,7 +25,7 @@ Commands:
 ```
 buildall (will attempt to build all SSDTs)
 build NAME (will attempt to build a single SSDT)
-debug (will attempt to build all SSDTS while generating a debug_output.txt file)
+debug (will run the script while generating a debug_output.txt file)
 help (will display help instructions)
 exit (will exit the script)
 ```
