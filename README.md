@@ -30,6 +30,8 @@ help (will display help instructions)
 exit (will exit the script)
 ```
 
+Go here for more support: <a href="http://www.insanelymac.com/forum/topic/322811-ssdtgen-script-for-custom-generated-ssdts-x99z170-systems/#entry2403977">ssdtGen script for custom generated SSDTs (x99/z170 systems)</a>
+
 --------------------------------------------------------------------------------------------------------------
 
 **Special notes:
