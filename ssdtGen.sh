@@ -145,7 +145,7 @@ function display_instructions()
   printf "       - ${bold}SMBS/SBUS${normal}: Adds x99/z170 support for a SMBus controller that allows communication between\n"
   printf "          external hardware devices (for example, Apple's Mikey driver)\n"
   printf "       - ${bold}XHC${normal}: Adds power options for the USB xHC Host Controller\n"
-  printf "       - ${bold}XOSI${normal}: Adds Windows simulated support for DSDT OSI_ methods\n"
+  printf "       - ${bold}XOSI${normal}: Adds Windows simulated support for DSDT _OSI methods\n"
   printf "\n"
   printf "To debug the script, input ${bold}debug${normal} or ${bold}DEBUG${normal}:\n"
   printf "       - Will put the script in a debug mode that will print to a debug_output.txt file until the \n"
@@ -1297,3 +1297,7 @@ if [[ `id -u` -ne 0 ]];
     main
     exit 0
 fi
+
+#===============================================================================##
+## END OF FILE #
+##==============================================================================##
