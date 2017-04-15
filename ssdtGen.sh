@@ -148,8 +148,8 @@ function display_instructions()
   printf "       - ${bold}XOSI${normal}: Adds Windows simulated support for DSDT OSI_ methods\n"
   printf "\n"
   printf "To debug the script, input ${bold}debug${normal} or ${bold}DEBUG${normal}:\n"
-  printf "       - Will automatically attempt to build and compile all SSDTS while\n"
-  printf "          generating a debug ouput.txt file to the Desktop\n"
+  printf "       - Will put the script in a debug mode that will print to a debug_output.txt file until the \n"
+  printf "          script has been terminated\n"
   printf "\n"
   while true; do
     read -p "Would you like to reload the script now? (y/n)? " choice
