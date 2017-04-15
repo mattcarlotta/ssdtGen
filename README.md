@@ -40,11 +40,14 @@ Go here for more support: <a href="http://www.insanelymac.com/forum/topic/322811
 
 --------------------------------------------------------------------------------------------------------------
 
-Limitation Notes
+**Limitation Notes
 
 * DSDT ACPI tables must be vanilla(†). If any devices are renamed, forget about it. Won't work.
 * This script will install IASL to the usr/local/bin directory if it's missing from usr/bin or usr/local/bin
 * Piker-Alpha's <a href="https://github.com/Piker-Alpha/ssdtPRGen.sh">ssdtPRgen</a> is still required if you wish to have CPU power management
+* This script currently only supports 1 connected (external) GPU. If you have or are using the IGPU (Intel's
+internal GPU located on the CPU die), then GPU injection won't work. Also, if you have multiple external
+GPU's attached, only the first one will be injected.
 * A generated SSDT-NVME.aml requires a spoofed HackrNVMeFamily-10_xx_x.kext to be loaded††
 * If a SSDT-xxxx.aml fails to compile, then it won't be saved. Check the terminal output for errors.
 
