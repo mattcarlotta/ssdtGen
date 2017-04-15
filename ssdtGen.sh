@@ -2,7 +2,7 @@
 #
 # Script (ssdtGen.sh) to create SSDTs for Mac OS.
 #
-# Version 0.1.3beta - Copyright (c) 2017 by M.F.C.
+# Version 0.1.4beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
@@ -937,7 +937,7 @@ function _compileSSDT
   fi
 
   #otherwise build all SSDTs
-  if [[ $gCount -lt 10 ]];
+  if (( $gCount < ${#gTableID[@]}-1 ));
    then
       echo 'Attempting to build all SSDTs...' > /dev/null 2>&1
      _printHeader
@@ -1132,24 +1132,17 @@ function _askfor_INCOMPLETENVMEDETAILS()
 function _checkIf_SSDT_Exists()
 {
   #loop through SSDT array to find user specfied buildOne SSDT
-  for((i=0;i<=10;i++))
+  for((i=0;i<${#gTableID[@]};i++))
   do
-  if [[ "${buildOne}" == "${gTableID[$i]}" ]];
-    then
-    #if NVME was selected, send them to INCOMPLETENVMEDETAILS prompt
-    if [[ "${buildOne}" == "NVME" ]];
+    if [[ "${buildOne}" == "${gTableID[$i]}" ]];
       then
+        #set gCount according to found SSDT (0-9)
         gCount=$i
-        _askfor_INCOMPLETENVMEDETAILS
-        exit 0
+        echo ''
+        #attempt to build and compile SSDT
+        _printHeader
+        break
     fi
-    #if not NVME, set gCount according to found SSDT (0-9)
-    gCount=$i
-    echo ''
-    #attempt to build and compile SSDT
-    _printHeader
-    exit 0
-  fi
   done
 
   echo ''
@@ -1173,9 +1166,17 @@ function _user_choices()
       ;;
       # attempt to build one SSDT
       build* | BUILD*)
-      _checkBoard
       buildOne=${choice:6:9}
-      _checkIf_SSDT_Exists
+      #if NVME was selected, send them to INCOMPLETENVMEDETAILS prompt
+      if [[ "$buildOne" == "NVME" ]];
+        then
+        gCount=0
+        gTableID='NVME'
+        _askfor_INCOMPLETENVMEDETAILS
+        else
+        _checkBoard
+        _checkIf_SSDT_Exists
+      fi
       exit 0
       ;;
       # debug mode
@@ -1223,7 +1224,7 @@ function _findMoboID()
 function _checkBoard
 {
   #loop through MoboID array list (X99, Z170, MAXIMUS)
-  for((i=0;i<=${#gMoboID[@]};i++))
+  for((i=0;i<${#gMoboID[@]};i++))
   do
     _findMoboID
     if [ ! -z "$moboID" ];
@@ -1258,7 +1259,7 @@ function _checkBoard
 ##==============================================================================##
 function greet()
 {
-  printf '                         ssdtGen Version 0.1.3b - Copyright (c) 2017 by M.F.C.'
+  printf '                         ssdtGen Version 0.1.4b - Copyright (c) 2017 by M.F.C.'
   printf  "\n%s" '-----------------------------------------------------------------------------------------------------'
   printf ' \n'
   sleep 0.25
