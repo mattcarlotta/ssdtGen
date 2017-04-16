@@ -431,6 +431,11 @@ function _findAUDIO()
     then
       #TAKE GPU DEVICE (H000) and add 1 (H001)
       DEVICE="${DEVICE:0:3}1"
+
+      #for debug purposes only
+      #DEVICE="HDAU"
+      #for debug purposes only
+
       #SET TO NEW VARIABLE FOR REMOVING DEVICE
       AUDIO=$DEVICE
   fi
@@ -777,6 +782,7 @@ function _buildSSDT()
       _findGPU
       _setDeviceProp '"AAPL,slot-name"' '"Built In"'
       _setDeviceProp '"hda-gfx"' '"onboard-2"'
+      #_findDeviceProp 'device-id'
       _setDeviceProp '"@0,connector-type"' '0x00, 0x08, 0x00, 0x00'
       _setDeviceProp '"@1,connector-type"' '0x00, 0x08, 0x00, 0x00'
       _setDeviceProp '"@2,connector-type"' '0x00, 0x08, 0x00, 0x00'
@@ -1032,7 +1038,7 @@ function _askfor_PCIBRIDGE()
 {
   echo ''
   while true; do
-  read -p "Is the NVME behind a PCI bridge? If so, write the PCI bridge address ${bold}0x0000${normal}, othwerwise write ${bold}no${normal}. $cr--> " choice
+  read -p "Is the NVME behind a PCI bridge? If so, write the PCI bridge address ${bold}0x0000${normal}, otherwise write ${bold}no${normal}. $cr--> " choice
     case "$choice" in
       #user wants to exit script
       exit|EXIT )
