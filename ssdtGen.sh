@@ -2,7 +2,7 @@
 #
 # Script (ssdtGen.sh) to create SSDTs for Mac OS.
 #
-# Version 0.1.4beta - Copyright (c) 2017 by M.F.C.
+# Version 0.1.5beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
@@ -548,6 +548,7 @@ function _findDevice_Address()
   echo '                   Method (H1IP, 1, Serialized)'                                  >> "$gSSDT"
   echo '                   {'                                                             >> "$gSSDT"
   echo '                        Store (Arg0, Local0)'                                     >> "$gSSDT"
+  echo '                        And(Local0, Ones, Local0)'                                >> "$gSSDT"
   echo '                        If (LLessEqual (Arg0, One))'                              >> "$gSSDT"
   echo '                        {'                                                        >> "$gSSDT"
   echo '                            Not (Arg0, Arg0)'                                     >> "$gSSDT"
@@ -697,7 +698,7 @@ function _getExtDevice_NVME
 ##==============================================================================##
 function _getExtDevice_Address()
 {
-  #only add DSM to pre-existing device (EVSS, )
+  #only add DSM to pre-existing device (EVSS, LPC0/B)
   DEVICE=$1
 
   echo '    External ('${gExtDSDTPath}'.'${DEVICE}', DeviceObj)'                          >> "$gSSDT"
@@ -844,7 +845,7 @@ function _buildSSDT()
       _close_Brackets true
   fi
 
-  if [ "$SSDT" == "LPC0" ] || [ "$SSDT" == "LCPB" ];
+  if [ "$SSDT" == "LPC0" ] || [ "$SSDT" == "LPCB" ];
     then
       _getExtDevice_Address $SSDT
       if [[ "$moboID" = "Z170" ]];
@@ -853,7 +854,6 @@ function _buildSSDT()
         else
           _setDeviceProp '"compatible"' '"pci8086,9c43"'
       fi
-
       _close_Brackets
   fi
 
@@ -1248,7 +1248,7 @@ function _checkBoard
       gTableID=('ALZA' 'EVSS' 'GFX1' 'GLAN' 'HECI' 'LPC0' 'SAT1' 'SMBS' 'XHC' 'XOSI' 'NVME')
     elif [[ "$moboID" = "Z170" ]] || [[ "$moboID" = "MAXIMUS" ]];
       then
-      gTableID=('EVSS' 'GLAN' 'GFX1' 'HDAS' 'HECI' 'LPCB' 'SAT0' 'SBUS' 'XHC' 'XOSI' 'NVME')
+      gTableID=('GLAN' 'GFX1' 'HDAS' 'HECI' 'LPCB' 'SAT0' 'SBUS' 'XHC' 'XOSI' 'NVME')
   else
     #if moboID doesn't match, display error, exit script
     printf "\n"
@@ -1266,7 +1266,7 @@ function _checkBoard
 ##==============================================================================##
 function greet()
 {
-  printf '                         ssdtGen Version 0.1.4b - Copyright (c) 2017 by M.F.C.'
+  printf '                         ssdtGen Version 0.1.5b - Copyright (c) 2017 by M.F.C.'
   printf  "\n%s" '-----------------------------------------------------------------------------------------------------'
   printf ' \n'
   sleep 0.25
