@@ -548,6 +548,7 @@ function _findDevice_Address()
   echo '                   Method (H1IP, 1, Serialized)'                                  >> "$gSSDT"
   echo '                   {'                                                             >> "$gSSDT"
   echo '                        Store (Arg0, Local0)'                                     >> "$gSSDT"
+  echo '                        And(Local0, Zero, Local0)'                                >> "$gSSDT"
   echo '                        If (LLessEqual (Arg0, One))'                              >> "$gSSDT"
   echo '                        {'                                                        >> "$gSSDT"
   echo '                            Not (Arg0, Arg0)'                                     >> "$gSSDT"
