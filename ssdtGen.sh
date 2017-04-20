@@ -627,6 +627,7 @@ function _findDevice_Address()
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Offset (0x0C),'                                                           >> "$gSSDT"
   echo '        GL00,   8,'                                                               >> "$gSSDT"
+  echo '        Offset (0x2C),'                                                           >> "$gSSDT"
   echo '            ,   1,'                                                               >> "$gSSDT"
   echo '        GI01,   1,'                                                               >> "$gSSDT"
   echo '            ,   1,'                                                               >> "$gSSDT"
