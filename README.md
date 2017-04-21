@@ -2,9 +2,12 @@
 
 Introduction
 
-ssdtGen is an automated bash script that attempts to build and compile SSDTs for X99/Z170 systems running Mac OS. Specifically, it will inject properties into your ACPI tables for: on-board sound, an external GPU/HDMI audio, sSata Contoller, ethernet, IMEI controller, LPC support, NVMe devices, Sata Controller, SBUS controller, XHC usb power options, and XOSI support.
+ssdtGen is an automated bash script that attempts to build and compile custom SSDTs for X99/Z170 systems (see first note below) running Mac OS. Specifically, it will inject properties into your ACPI tables for: on-board sound, an external GPU/HDMI audio, sSata Contoller, ethernet, IMEI controller, LPC support, NVMe devices, Sata Controller, SBUS controller, XHC usb power options, and XOSI support.
 
-Please note that some of the devices will still need "drivers" (kexts) to be fully functional:
+Note 1: Regardless of motherboard, you can build a custom NVME SSDT that'll work in conjunction with Rehabman's spoofed HackrNVMeFamily-10_xx_x.kext. If you're unfamiliar with how NVME injection works and what is required, please read one or both of the guides in footnote 2 (††) in the "Limitation Notes" below.
+
+
+Note 2: Please note that some of the devices will still need "drivers" (kexts) to be fully functional:
 * <a href="http://www.insanelymac.com/forum/files/file/436-ahciportinjectorkext/">AHCIPortInjector.kext</a> for HDD/SSD devices (EVSS and SAT0/SAT1)
 * <a href="http://www.insanelymac.com/forum/topic/304235-intelmausiethernetkext-for-intel-onboard-lan/#entry2107186">IntelMausiEthernet.kext</a> for ethernet (GLAN)
 * Custom AppleHDA-ALCXXXX.kext OR <a href="http://www.insanelymac.com/forum/topic/311293-applealc-%E2%80%94-dynamic-applehda-patching/#entry2221652">AppleALC.kext</a> + <a href="https://bitbucket.org/RehabMan/os-x-eapd-codec-commander">CodecCommander.kext</a> OR <a href="http://www.insanelymac.com/forum/topic/308387-el-capitan-realtek-alc-applehda-audio/#entry2172944">RealtekALC.kext</a> for on-board and HDMI/DP sound (HDAU and HDEF)
@@ -43,7 +46,7 @@ Go here for more support: <a href="http://www.insanelymac.com/forum/topic/322811
 **Limitation Notes
 
 * DSDT ACPI tables must be vanilla(†). If any devices are renamed, forget about it. Won't work.
-* Clover DSDT "fixes" (like addHDMI/fixSBUS) will interfere with SSDT injection. Do not use. 
+* Clover DSDT "fixes" (like addHDMI/fixSBUS) will interfere with SSDT injection. Do not use.
 * This script will install IASL to the usr/local/bin directory if it's missing from usr/bin or usr/local/bin
 * Piker-Alpha's <a href="https://github.com/Piker-Alpha/ssdtPRGen.sh">ssdtPRgen</a> is still required if you wish to have CPU power management
 * This script currently only supports 1 connected (external) GPU. If you have or are using the IGPU (Intel's
