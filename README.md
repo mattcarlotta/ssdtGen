@@ -43,6 +43,7 @@ Go here for more support: <a href="http://www.insanelymac.com/forum/topic/322811
 **Limitation Notes
 
 * DSDT ACPI tables must be vanilla(†). If any devices are renamed, forget about it. Won't work.
+* Clover DSDT "fixes" (like addHDMI/fixSBUS) will interfere with SSDT injection. Do not use. 
 * This script will install IASL to the usr/local/bin directory if it's missing from usr/bin or usr/local/bin
 * Piker-Alpha's <a href="https://github.com/Piker-Alpha/ssdtPRGen.sh">ssdtPRgen</a> is still required if you wish to have CPU power management
 * This script currently only supports 1 connected (external) GPU. If you have or are using the IGPU (Intel's
