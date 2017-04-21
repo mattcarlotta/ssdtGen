@@ -6,7 +6,6 @@ ssdtGen is an automated bash script that attempts to build and compile custom SS
 
 Note 1: Regardless of motherboard, you can build a custom NVME SSDT that'll work in conjunction with Rehabman's spoofed HackrNVMeFamily-10_xx_x.kext. If you're unfamiliar with how NVME injection works and what is required, please read one or both of the guides in footnote 2 (††) in the "Limitation Notes" below.
 
-
 Note 2: Please note that some of the devices will still need "drivers" (kexts) to be fully functional:
 * <a href="http://www.insanelymac.com/forum/files/file/436-ahciportinjectorkext/">AHCIPortInjector.kext</a> for HDD/SSD devices (EVSS and SAT0/SAT1)
 * <a href="http://www.insanelymac.com/forum/topic/304235-intelmausiethernetkext-for-intel-onboard-lan/#entry2107186">IntelMausiEthernet.kext</a> for ethernet (GLAN)
