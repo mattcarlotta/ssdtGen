@@ -511,6 +511,22 @@ function _findDevice_Address()
   _checkDevice_Prop "${SSDTADR}" "$DEVICE" "$PROP"
 
   #set-up SBUS/SMBS Mikey driver
+  echo '    External (_SB_.PCI0, DeviceObj)'                                              >> "$gSSDT"
+  echo '    External (_SB_.PCI0.'${DEVICE}', DeviceObj)'                                  >> "$gSSDT"
+  echo '    Scope (\_SB.PCI0.'${DEVICE}') {Name (_STA, Zero)}'                            >> "$gSSDT"
+  echo '    OperationRegion (GPIO, SystemIO, 0x0500, 0x3C)'                               >> "$gSSDT"
+  echo '    Field (GPIO, ByteAcc, NoLock, Preserve)'                                      >> "$gSSDT"
+  echo '    {'                                                                            >> "$gSSDT"
+  echo '        Offset (0x0C),'                                                           >> "$gSSDT"
+  echo '        GL00,   8,'                                                               >> "$gSSDT"
+  echo '        Offset (0x2C),'                                                           >> "$gSSDT"
+  echo '            ,   1,'                                                               >> "$gSSDT"
+  echo '        GI01,   1,'                                                               >> "$gSSDT"
+  echo '            ,   1,'                                                               >> "$gSSDT"
+  echo '        GI06,   1,'                                                               >> "$gSSDT"
+  echo '        Offset (0x2D),'                                                           >> "$gSSDT"
+  echo '        GL04,   8'                                                                >> "$gSSDT"
+  echo '    }'                                                                            >> "$gSSDT"
   echo '    Device ('${gSSDTPath}'.'${DEVICE2}')'                                         >> "$gSSDT"
   echo '    {'                                                                            >> "$gSSDT"
   echo '        Name (_ADR, 0x'${SSDTADR}')  // _ADR: Address'                            >> "$gSSDT"
@@ -547,8 +563,6 @@ function _findDevice_Address()
   echo '                   }'                                                             >> "$gSSDT"
   echo '                   Method (H1IP, 1, Serialized)'                                  >> "$gSSDT"
   echo '                   {'                                                             >> "$gSSDT"
-  echo '                        Store (Arg0, Local0)'                                     >> "$gSSDT"
-  echo '                        And(Local0, Ones, Local0)'                                >> "$gSSDT"
   echo '                        If (LLessEqual (Arg0, One))'                              >> "$gSSDT"
   echo '                        {'                                                        >> "$gSSDT"
   echo '                            Not (Arg0, Arg0)'                                     >> "$gSSDT"
@@ -579,7 +593,12 @@ function _findDevice_Address()
   echo '                   Name (P1IN, 0x16)'                                             >> "$gSSDT"
   echo '                   Scope (\_GPE)'                                                 >> "$gSSDT"
   echo '                   {'                                                             >> "$gSSDT"
-  echo '                        Method (_L16, 0, NotSerialized)'                          >> "$gSSDT"
+  if [[ "$moboID" = "X99" ]];
+    then
+      echo '                        Method (_L16, 0, NotSerialized)'                      >> "$gSSDT"
+    else
+      echo '                        Method (_L14, 0, NotSerialized)'                      >> "$gSSDT"
+  fi
   echo '                        {'                                                        >> "$gSSDT"
   echo '                            XOr (GI06, One, GI06)'                                >> "$gSSDT"
   echo '                            Notify (\_SB.PCI0.'${DEVICE2}'.BUS0.MKY0, 0x80)'      >> "$gSSDT"
@@ -622,19 +641,7 @@ function _findDevice_Address()
   echo '            Name (_ADR, One)'                                                     >> "$gSSDT"
   echo '        }'                                                                        >> "$gSSDT"
   echo '    }'                                                                            >> "$gSSDT"
-  echo '    OperationRegion (GPIO, SystemIO, 0x0500, 0x3C)'                               >> "$gSSDT"
-  echo '    Field (GPIO, ByteAcc, NoLock, Preserve)'                                      >> "$gSSDT"
-  echo '    {'                                                                            >> "$gSSDT"
-  echo '        Offset (0x0C),'                                                           >> "$gSSDT"
-  echo '        GL00,   8,'                                                               >> "$gSSDT"
-  echo '        Offset (0x2C),'                                                           >> "$gSSDT"
-  echo '            ,   1,'                                                               >> "$gSSDT"
-  echo '        GI01,   1,'                                                               >> "$gSSDT"
-  echo '            ,   1,'                                                               >> "$gSSDT"
-  echo '        GI06,   1,'                                                               >> "$gSSDT"
-  echo '        Offset (0x2D),'                                                           >> "$gSSDT"
-  echo '        GL04,   8'                                                                >> "$gSSDT"
-  echo '    }'                                                                            >> "$gSSDT"
+  echo '}'                                                                                >> "$gSSDT"
 }
 
 #===============================================================================##
@@ -888,7 +895,7 @@ function _buildSSDT()
           # for debug only
           _findDevice_Address "${SSDT}" "SBUS"
       fi
-      _setDevice_Status
+      #_setDevice_Status
   fi
 
   if [[ "$SSDT" == "XHC" ]];
