@@ -2,7 +2,7 @@
 #
 # Script (ssdtGen.sh) to create SSDTs for Mac OS.
 #
-# Version 0.1.5beta - Copyright (c) 2017 by M.F.C.
+# Version 0.1.6beta - Copyright (c) 2017 by M.F.C.
 #
 # Introduction:
 #     - ssdtGen is an automated bash script that attempts to build and
@@ -268,9 +268,9 @@ function _close_Brackets()
     then
     echo '        }'                                                                      >> "$gSSDT"
     echo '    }'                                                                          >> "$gSSDT"
+   #if BRIDGEADDRESS is not empty, add one more closing bracket
     if [ ! -z "$BRIDGEADDRESS" ];
       then
-        #if BRIDGEADDRESS is not empty, add one more closing bracket
         echo '    }'                                                                      >> "$gSSDT"
     fi
   else
@@ -458,6 +458,9 @@ function _findGPU()
   PCISLOT=${GPUPATH:0:4} #BR3A / PEG0
   DEVICE=${GPUPATH:4:4} #H000 / PEGP
   GPU=$DEVICE
+
+  #see if user is using a 17,1 SMBIOS, because it requires a subsystem-vendor-id property
+  iMac171=$(ioreg -lw0 -p IODeviceTree | awk '/compatible/ {print $4}' | grep -o iMac17,1)
 
   #make sure the return GPU_PATH isn't empty
   _checkDevice_Prop "${GPUPATH}" "$SSDT" "$PROP"
@@ -791,7 +794,10 @@ function _buildSSDT()
       _findGPU
       _setDeviceProp '"AAPL,slot-name"' '"Built In"'
       _setDeviceProp '"hda-gfx"' '"onboard-2"'
-      #_findDeviceProp 'device-id'
+      if [ ! -z "$iMac171" ];
+        then
+          _findDeviceProp 'subsystem-vendor-id'
+      fi
       _setDeviceProp '"@0,connector-type"' '0x00, 0x08, 0x00, 0x00'
       _setDeviceProp '"@1,connector-type"' '0x00, 0x08, 0x00, 0x00'
       _setDeviceProp '"@2,connector-type"' '0x00, 0x08, 0x00, 0x00'
@@ -992,7 +998,7 @@ function _checkIf_PATH_Exists()
   fi
 
   #if IOREG is empty...
-  if [ -z "$IOREGPATH" ]
+  if [ -z "$IOREGPATH" ];
     then
       #check if INCOMPLETENVMEPATH was not activated, if so, display NVMEPATH error
       if [ -z "$INCOMPLETENVMEPATH" ];
@@ -1274,7 +1280,7 @@ function _checkBoard
 ##==============================================================================##
 function greet()
 {
-  printf '                         ssdtGen Version 0.1.5b - Copyright (c) 2017 by M.F.C.'
+  printf '                         ssdtGen Version 0.1.6b - Copyright (c) 2017 by M.F.C.'
   printf  "\n%s" '-----------------------------------------------------------------------------------------------------'
   printf ' \n'
   sleep 0.25
