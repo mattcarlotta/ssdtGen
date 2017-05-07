@@ -1,4 +1,4 @@
-# ssdtGen 0.1.6beta
+# Deprecated -- see <a href="https://github.com/mattcarlotta/ssdtGenApp">ssdtGenApp</a>
 
 Introduction
 
